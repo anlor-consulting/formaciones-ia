@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lógica de Programación — Curso base</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFF3F6;
+    --paper-alt:#FFFFFF;
+    --ink:#1B2A4A;
+    --ink-soft:#45526B;
+    --ink-faint:#7686A0;
+    --amber:#E8A33D;
+    --amber-soft:#FBF0DC;
+    --sage:#4C8C6B;
+    --sage-soft:#E4F0EA;
+    --coral:#D9634F;
+    --coral-soft:#FBE6E2;
+    --line:#C7D2DE;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%; overflow:hidden;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:radial-gradient(circle, var(--line) 1px, transparent 1px);
+    background-size:26px 26px;
+    opacity:.35;
+    pointer-events:none;
+    z-index:0;
+  }
+  a{color:inherit;}
+  h1,h2,h3{font-family:'Fraunces', serif; color:var(--ink); font-weight:600;}
+  code, .mono{font-family:'IBM Plex Mono', monospace;}
+
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(30px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes floaty{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-14px);} }
+  @keyframes spinSlow{ to{transform:rotate(360deg);} }
+  @keyframes pulseRing{ 0%{transform:scale(.9); opacity:.9;} 70%{transform:scale(1.7); opacity:0;} 100%{opacity:0;} }
+  @keyframes diamondPulse{ 0%,100%{transform:rotate(45deg) scale(1);} 50%{transform:rotate(45deg) scale(1.1);} }
+  @keyframes glowTrue{ 0%,42%{opacity:1; transform:scale(1);} 50%,92%{opacity:.22; transform:scale(.92);} 100%{opacity:1; transform:scale(1);} }
+  @keyframes glowFalse{ 0%,42%{opacity:.22; transform:scale(.92);} 50%,92%{opacity:1; transform:scale(1);} 100%{opacity:.22; transform:scale(.92);} }
+  @keyframes pulseDot{ 0%{box-shadow:0 0 0 0 rgba(232,163,61,.5);} 70%{box-shadow:0 0 0 10px rgba(232,163,61,0);} 100%{box-shadow:0 0 0 0 rgba(232,163,61,0);} }
+  @keyframes bounceX{ 0%,100%{transform:translateX(0);} 50%{transform:translateX(6px);} }
+  @keyframes vennBreathe{ 0%,100%{fill-opacity:.35;} 50%{fill-opacity:.68;} }
+
+  .reveal{opacity:0;}
+  .slide.in-view .reveal{animation:fadeUp .7s ease forwards;}
+  .slide.in-view .reveal:nth-of-type(1){animation-delay:.02s;}
+  .slide.in-view .reveal:nth-of-type(2){animation-delay:.10s;}
+  .slide.in-view .reveal:nth-of-type(3){animation-delay:.18s;}
+  .slide.in-view .reveal:nth-of-type(4){animation-delay:.26s;}
+  .slide.in-view .reveal:nth-of-type(5){animation-delay:.34s;}
+  .slide.in-view .reveal:nth-of-type(6){animation-delay:.42s;}
+
+  /* ---------- TOP BAR / PROGRESS TRACK ---------- */
+  .topbar{
+    position:fixed; top:0; left:0; right:0; z-index:20; height:72px;
+    display:flex; align-items:center; gap:22px; padding:0 32px;
+    background:linear-gradient(var(--paper) 70%, transparent);
+  }
+  .topbar .brand{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-faint); flex:0 0 auto; display:flex; align-items:center; gap:8px;
+  }
+  .topbar .brand .dot{width:7px;height:7px;border-radius:50%; background:var(--amber); animation:pulseDot 1.8s ease-out infinite;}
+  .track{
+    flex:1; display:flex; align-items:center; gap:0; overflow-x:auto; scrollbar-width:none; height:100%;
+  }
+  .track::-webkit-scrollbar{display:none;}
+  .track-line{position:relative; flex:1; display:flex; align-items:center; min-width:max-content; gap:26px; padding:0 4px;}
+  .track-line::before{
+    content:""; position:absolute; left:0; right:0; top:50%; height:2px; transform:translateY(-50%);
+    background:repeating-linear-gradient(90deg, var(--line), var(--line) 5px, transparent 5px, transparent 10px);
+    z-index:0;
+  }
+  .tnode{
+    position:relative; z-index:1; width:15px; height:15px; border-radius:50%; background:var(--paper-alt);
+    border:2px solid var(--line); cursor:pointer; flex:0 0 auto; transition:.2s ease; padding:0;
+  }
+  .tnode.diamond{border-radius:3px; transform:rotate(45deg);}
+  .tnode:hover{transform:scale(1.3);}
+  .tnode.diamond:hover{transform:rotate(45deg) scale(1.3);}
+  .tnode.active{background:var(--ink); border-color:var(--ink); transform:scale(1.5);}
+  .tnode.diamond.active{transform:rotate(45deg) scale(1.5);}
+  .topbar .counter{
+    flex:0 0 auto; font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--ink-faint);
+  }
+  .topbar .counter strong{color:var(--ink);}
+
+  /* ---------- DECK / SLIDES ---------- */
+  .deck{
+    position:relative; z-index:1; display:flex; width:100vw; height:100vh;
+    overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; scroll-behavior:smooth;
+    scrollbar-width:none;
+  }
+  .deck::-webkit-scrollbar{display:none;}
+  .slide{
+    flex:0 0 100vw; height:100vh; scroll-snap-align:center;
+    display:flex; align-items:center; justify-content:center;
+    padding:100px 8vw 60px; overflow-y:auto;
+  }
+  .slide-inner{max-width:1080px; width:100%;}
+
+  /* nav arrows */
+  .navbtn{
+    position:fixed; top:50%; transform:translateY(-50%); z-index:20;
+    width:52px; height:52px; border-radius:50%; border:1px solid var(--line);
+    background:var(--paper-alt); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; opacity:.85; transition:.2s ease;
+  }
+  .navbtn:hover{opacity:1; transform:translateY(-50%) scale(1.08); box-shadow:0 12px 26px -14px rgba(27,42,74,.4);}
+  .navbtn.prev{left:26px;}
+  .navbtn.next{right:26px;}
+  .navbtn svg{width:20px; height:20px;}
+  .navbtn[disabled]{opacity:.25; pointer-events:none;}
+
+  .kbhint{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%); z-index:20;
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--ink-faint);
+    display:flex; align-items:center; gap:8px; background:var(--paper-alt); border:1px solid var(--line);
+    padding:6px 14px; border-radius:999px;
+  }
+  .kbhint .arrow{display:inline-block; animation:bounceX 1.6s ease-in-out infinite;}
+
+  /* ---------- HERO SLIDE ---------- */
+  .floaters{position:absolute; inset:0; pointer-events:none; z-index:0;}
+  .floaters span{position:absolute; border-radius:50%; opacity:.5; animation:floaty 6s ease-in-out infinite;}
+  .floaters span:nth-child(1){width:14px; height:14px; background:var(--amber); top:14%; left:8%; animation-duration:5.5s;}
+  .floaters span:nth-child(2){width:9px; height:9px; background:var(--sage); top:74%; left:16%; animation-duration:7s; animation-delay:.6s;}
+  .floaters span:nth-child(3){width:20px; height:20px; border:2px solid var(--line); background:none; top:20%; right:12%; animation-duration:8s; animation-delay:1.2s;}
+  .floaters span:nth-child(4){width:11px; height:11px; background:var(--coral); top:64%; right:20%; animation-duration:6.4s; animation-delay:.3s;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; text-transform:uppercase; letter-spacing:.14em;
+    font-size:12.5px; color:var(--ink-faint); margin-bottom:18px; display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%; background:var(--amber); animation:pulseDot 1.8s ease-out infinite;}
+  .hero-slide h1{font-size:clamp(38px,6vw,72px); line-height:1.04; letter-spacing:-.01em;}
+  .hero-slide h1 em{font-style:normal; color:var(--sage);}
+  .hero-sub{font-size:17px; color:var(--ink-soft); max-width:48ch; margin-top:18px;}
+  .hero-meta{
+    font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--ink-faint);
+    display:flex; gap:28px; margin-top:40px;
+  }
+  .hero-meta strong{color:var(--ink); font-weight:600; display:block; font-family:'Fraunces',serif; font-size:15px; margin-top:2px;}
+
+  /* ---------- AXIOM SLIDE ---------- */
+  .axiom{
+    background:var(--ink); border-radius:24px; padding:60px 56px; position:relative; overflow:hidden;
+  }
+  .axiom::after{
+    content:""; position:absolute; width:520px; height:520px; border-radius:50%;
+    border:1px dashed rgba(255,255,255,.08); right:-200px; top:50%; transform:translateY(-50%);
+    animation:spinSlow 40s linear infinite;
+  }
+  .axiom-grid{display:grid; grid-template-columns:auto 1fr; gap:30px; align-items:flex-start; position:relative; z-index:1;}
+  .axiom-mark{
+    width:50px; height:50px; border-radius:50%; background:var(--sage);
+    display:flex; align-items:center; justify-content:center; flex:0 0 auto; position:relative;
+  }
+  .axiom-mark::before{content:""; position:absolute; inset:-6px; border-radius:50%; border:2px solid var(--sage); animation:pulseRing 2.2s ease-out infinite;}
+  .axiom-mark svg{width:24px; height:24px;}
+  .axiom-title{color:var(--paper); font-size:clamp(24px,3.4vw,40px); margin-bottom:16px;}
+  .axiom-title em{font-style:normal; color:var(--amber);}
+  .axiom-text{color:#B9C4DA; font-size:16px; max-width:74ch;}
+  .axiom-text b{color:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:600; font-size:14.5px;}
+  .bool-chips{display:flex; gap:14px; margin-top:26px;}
+  .chip{font-family:'IBM Plex Mono', monospace; font-size:13px; padding:8px 16px; border-radius:999px; border:1px solid rgba(255,255,255,.18); color:#B9C4DA;}
+  .chip.true{color:#8BD6A9; border-color:#8BD6A9; animation:glowTrue 3.2s ease-in-out infinite;}
+  .chip.false{color:#F0A090; border-color:#F0A090; animation:glowFalse 3.2s ease-in-out infinite;}
+
+  /* ---------- ACCENT: BUCLES (enlaza con otro curso) ---------- */
+  .slide.accent-loop{
+    background:linear-gradient(160deg, #24463F 0%, #17302B 100%);
+  }
+  .slide.accent-loop .module-label{color:#8FCBA8;}
+  .slide.accent-loop .mod-head-text h2{color:#F2F7F4;}
+  .slide.accent-loop .mod-head-text h2 span{color:var(--amber);}
+  .slide.accent-loop .entag{background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.2); color:#DCE9E3;}
+  .slide.accent-loop .node{background:rgba(255,255,255,.08); border-color:#8FCBA8;}
+  .slide.accent-loop .node svg{stroke:#8FCBA8 !important;}
+  .slide.accent-loop .analogy{background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.16); color:#DCE9E3;}
+  .slide.accent-loop .analogy b{color:#fff;}
+  .slide.accent-loop .card{background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.16);}
+  .slide.accent-loop .card b{color:var(--amber);}
+  .slide.accent-loop .card ul{color:#DCE9E3;}
+  .slide.accent-loop .card code{color:#F3B562;}
+  .slide.accent-loop .end-note{color:#8FCBA8; font-family:'IBM Plex Mono',monospace; font-size:12.5px;}
+
+  /* ---------- MODULE SLIDES ---------- */
+  .mod-head{display:flex; align-items:center; gap:18px; margin-bottom:20px;}
+  .node{
+    width:56px; height:56px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+    background:var(--paper-alt); border:2px solid var(--ink); position:relative;
+  }
+  .node svg{width:24px; height:24px; position:relative; z-index:1;}
+  .node.circle{border-radius:50%;}
+  .node.diamond-wrap{background:none; border:none;}
+  .diamond-box{
+    width:40px; height:40px; border:2px solid var(--ink); background:var(--paper-alt);
+    display:flex; align-items:center; justify-content:center; transform:rotate(45deg);
+    animation:diamondPulse 2.4s ease-in-out infinite;
+  }
+  .diamond-box svg{width:20px; height:20px; transform:rotate(-45deg);}
+  .node.hex-wrap{background:none; border:none;}
+  .hex-outline{position:absolute; inset:0; width:100%; height:100%; z-index:0;}
+  .hex-outline polygon{fill:var(--paper-alt); stroke:var(--ink); stroke-width:2;}
+  .node.loop svg{animation:spinSlow 3.5s linear infinite; transform-origin:center;}
+  .node.bool{border-radius:50%; border-color:var(--sage);}
+  .node.warn{border-radius:50%; border-color:var(--coral);}
+  .mod-head-text .module-label{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--ink-faint);
+    text-transform:uppercase; letter-spacing:.1em; margin-bottom:4px;
+  }
+  .mod-head-text h2{font-size:clamp(24px,3.2vw,34px); margin:0;}
+  .mod-head-text h2 span{color:var(--amber);}
+  .entag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+    color:var(--ink-faint); background:var(--paper-alt); border:1px solid var(--line);
+    border-radius:999px; padding:3px 12px; margin-left:10px; vertical-align:middle;
+  }
+
+  .analogy{
+    background:var(--paper-alt); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 22px; margin:16px 0; font-size:15px; color:var(--ink-soft);
+    transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .analogy:hover{transform:translateY(-3px); box-shadow:0 14px 30px -18px rgba(27,42,74,.35);}
+  .analogy b{color:var(--ink); font-family:'Fraunces', serif; font-weight:600;}
+
+  .definition{
+    display:flex; gap:14px; align-items:flex-start; margin:16px 0;
+    padding:14px 18px; background:var(--sage-soft); border-radius:var(--radius);
+    border-left:4px solid var(--sage);
+  }
+  .definition b{display:block; font-family:'IBM Plex Mono', monospace; font-size:11px;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--sage); margin-bottom:4px;}
+
+  pre.code{
+    background:#1B2A4A; color:#EAF1F7; border-radius:var(--radius);
+    padding:20px 22px; overflow:auto; font-family:'IBM Plex Mono', monospace;
+    font-size:clamp(12px, 1.15vw, 14px); line-height:1.7; margin:16px 0; position:relative;
+    max-height:42vh; white-space:pre; tab-size:4;
+  }
+  .card pre.code{font-size:clamp(11.5px, 1vw, 13px); padding:16px 18px 14px; max-height:none;}
+  pre.code::before{
+    content:attr(data-label); position:absolute; top:-10px; left:18px;
+    background:var(--amber); color:var(--ink); font-family:'IBM Plex Mono', monospace;
+    font-size:10px; text-transform:uppercase; letter-spacing:.08em;
+    padding:3px 9px; border-radius:4px; font-weight:600; white-space:nowrap;
+  }
+  pre.code .kw{color:#F3B562; font-weight:600;}
+  pre.code .cm{color:#7C8AAC; font-style:italic;}
+  pre.code .fn{color:#8FC7E8;}
+
+  .exercise{
+    margin-top:16px; border:1.5px dashed var(--amber); border-radius:var(--radius);
+    padding:16px 20px; background:var(--amber-soft);
+  }
+  .exercise summary{cursor:pointer; font-family:'Fraunces', serif; font-weight:600; font-size:15px; list-style:none; display:flex; align-items:center; gap:10px;}
+  .exercise summary::before{content:"✎"; color:var(--amber); font-size:17px;}
+  .exercise summary::-webkit-details-marker{display:none;}
+  .exercise p{margin-top:8px; font-size:14px; color:var(--ink-soft);}
+  .exercise .answer{margin-top:12px; padding:12px 14px; background:var(--paper-alt); border-radius:10px; font-size:13.5px; color:var(--ink-soft);}
+  .exercise .answer b{color:var(--sage); font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase;}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0;}
+  .card{background:var(--paper-alt); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; transition:transform .2s ease;}
+  .card:hover{transform:translateY(-3px);}
+  .card b{font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--coral); text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:6px;}
+  .card ul{padding-left:18px; font-size:14px; color:var(--ink-soft);}
+  .card li{margin-bottom:4px;}
+
+  table.vartable{width:100%; border-collapse:collapse; margin:14px 0; font-size:13.5px;}
+  table.vartable th, table.vartable td{text-align:left; padding:8px 12px; border-bottom:1px solid var(--line);}
+  table.vartable th{font-family:'IBM Plex Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint);}
+  table.vartable td.mono{color:var(--coral);}
+  table.vartable tr{transition:background .2s ease;}
+  table.vartable tr:hover{background:var(--paper);}
+
+  /* ---------- VENN (funciones booleanas) ---------- */
+  .venn-row{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:18px 0;}
+  .venn-card{background:var(--paper-alt); border:1px solid var(--line); border-radius:var(--radius); padding:16px 14px 12px; text-align:center; transition:transform .25s ease, box-shadow .25s ease;}
+  .venn-card:hover{transform:translateY(-4px); box-shadow:0 16px 34px -20px rgba(27,42,74,.4);}
+  .venn-title{font-family:'Fraunces',serif; font-weight:700; font-size:18px; color:var(--ink);}
+  .venn-title span{font-family:'IBM Plex Mono',monospace; font-weight:400; font-size:11px; color:var(--ink-faint); margin-left:4px;}
+  .venn-sub{font-size:11.5px; color:var(--ink-faint); margin:2px 0 6px;}
+  .venn-svg{width:100%; height:auto; max-width:180px;}
+  .venn-outline{fill:none; stroke:var(--ink); stroke-width:2;}
+  .venn-letter{font-family:'IBM Plex Mono',monospace; font-size:14px; fill:var(--ink-soft); text-anchor:middle;}
+  .venn-mask{fill:var(--paper-alt);}
+  .venn-fill{animation:vennBreathe 3.4s ease-in-out infinite;}
+  .fill-sage{fill:var(--sage); fill-opacity:.6;}
+  .fill-amber{fill:var(--amber); fill-opacity:.5;}
+  .fill-coral{fill:var(--coral); fill-opacity:.55;}
+  .venn-card:nth-child(2) .venn-fill{animation-delay:.5s;}
+  .venn-card:nth-child(3) .venn-fill{animation-delay:1s;}
+  .venn-code{margin-top:8px; font-size:11.5px; color:var(--ink-soft); background:var(--paper); border-radius:8px; padding:6px 8px;}
+  .venn-code b{color:var(--ink); font-weight:600;}
+  .venn-code span{color:var(--ink-faint); margin:0 2px;}
+
+  /* ---------- Finale / Glossary ---------- */
+  .finale{background:var(--ink); color:var(--paper); border-radius:20px; padding:46px 44px; position:relative; overflow:hidden;}
+  .finale::after{content:""; position:absolute; width:400px; height:400px; border-radius:50%; border:1px dashed rgba(255,255,255,.06); right:-140px; bottom:-160px; animation:spinSlow 50s linear infinite;}
+  .finale h2{color:var(--paper); font-size:28px; position:relative; z-index:1;}
+  .finale p{color:#B9C4DA; max-width:64ch; margin:12px 0 16px; position:relative; z-index:1;}
+  .finale pre.code{background:#0F1B33; position:relative; z-index:1;}
+
+  .gloss-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:2px; background:var(--line); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;}
+  .gloss-item{background:var(--paper-alt); padding:14px 18px; transition:background .2s ease;}
+  .gloss-item:hover{background:var(--amber-soft);}
+  .gloss-item b{font-family:'IBM Plex Mono', monospace; color:var(--ink); display:block; margin-bottom:2px; font-size:13px;}
+  .gloss-item span{font-size:12.5px; color:var(--ink-soft);}
+  .end-note{margin-top:20px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-faint); text-align:center;}
+
+  @media(max-width:900px){
+    .topbar{height:60px; padding:0 16px; gap:12px;}
+    .navbtn{width:42px; height:42px;}
+    .navbtn.prev{left:10px;} .navbtn.next{right:10px;}
+    .slide{padding:90px 6vw 50px;}
+    .axiom{padding:34px 26px;}
+    .axiom-grid{grid-template-columns:1fr;}
+    .grid2, .gloss-grid, .venn-row{grid-template-columns:1fr;}
+    .hero-meta{flex-direction:column; gap:14px;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span> LÓGICA</div>
+    <div class="track">
+      <div class="track-line" id="trackLine"></div>
+    </div>
+    <div class="counter"><strong id="curNum">01</strong> / <span id="totNum">13</span></div>
+  </div>
+
+  <button class="navbtn prev" id="btnPrev" aria-label="Anterior">
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <button class="navbtn next" id="btnNext" aria-label="Siguiente">
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+  <div class="kbhint"><span class="arrow">←</span> usa las flechas del teclado para navegar <span class="arrow">→</span></div>
+
+  <div class="deck" id="deck">
+
+    <!-- SLIDE 1 · HERO -->
+    <section class="slide hero-slide" data-icon="stack" data-title="Portada">
+      <div class="floaters"><span></span><span></span><span></span><span></span></div>
+      <div class="slide-inner">
+        <div class="eyebrow reveal"><span class="dot"></span> CURSO BASE · SIN EXPERIENCIA PREVIA</div>
+        <h1 class="reveal">Cómo <em>piensa</em><br>un programa</h1>
+        <p class="hero-sub reveal">Antes de aprender un lenguaje, hay que aprender la lógica que hay debajo de todos ellos. Este es el mapa: las piezas con las que se construye cualquier código, explicadas sin tecnicismos.</p>
+        <div class="hero-meta reveal">
+          <span>Formato<strong>pseudocódigo genérico</strong></span>
+          <span>Duración<strong>2–3 horas</strong></span>
+          <span>Nivel<strong>inicial</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2 · AXIOMA -->
+    <section class="slide" data-icon="circle" data-title="Principio">
+      <div class="slide-inner axiom">
+        <div class="axiom-grid">
+          <div class="axiom-mark reveal"><svg viewBox="0 0 24 24" fill="none" stroke="var(--paper)" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div>
+            <div class="module-label reveal" style="color:#8FA3C4; font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px;">Antes de empezar — el principio detrás de todo</div>
+            <h2 class="axiom-title reveal">Casi todo se reduce a <em>verdadero</em> o <em>falso</em></h2>
+            <p class="axiom-text reveal">Da igual el lenguaje — Python, JavaScript, Java, C++...— por debajo, casi toda la lógica de un programa se apoya en preguntas que solo admiten dos respuestas: <b>VERDADERO</b> o <b>FALSO</b>. "¿Es mayor de 18?", "¿Coincide la contraseña?", "¿Quedan elementos en la lista?". Cada condicional, cada bucle y muchas funciones existen para responder una de estas preguntas booleanas y decidir qué instrucción se ejecuta a continuación.</p>
+            <div class="bool-chips reveal">
+              <span class="chip true">● VERDADERO · "true"</span>
+              <span class="chip false">● FALSO · "false"</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3 · 00 INTRO -->
+    <section class="slide" data-icon="stack" data-title="Qué es programar">
+      <div class="slide-inner">
+        <div class="mod-head reveal">
+          <div class="node" style="background:var(--ink);"><svg viewBox="0 0 24 24" fill="none" stroke="#EFF3F6" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+          <div class="mod-head-text"><div class="module-label">Módulo 00</div><h2>¿Qué es <span>programar</span>, en realidad?</h2></div>
+        </div>
+        <div class="analogy reveal"><b>La analogía de la receta.</b> Programar es escribir instrucciones tan precisas que alguien sin criterio propio —el ordenador— pueda seguirlas sin equivocarse. Igual que una receta dice "bate 2 huevos, añade 200g de harina, hornea 20 minutos a 180°", un programa dice "guarda este número, compáralo con este otro, repite esto 5 veces".</div>
+        <div class="grid2 reveal">
+          <div class="card">
+            <b>Las piezas que veremos</b>
+            <ul>
+              <li>Variables — dónde se guardan los datos ("variable")</li>
+              <li>Tipos de dato — qué clase de información es ("data type")</li>
+              <li>Operadores — cómo se combina y compara ("operators")</li>
+              <li>Condicionales — cómo se toman decisiones ("if / else")</li>
+              <li>Bucles — cómo se repite algo ("loop")</li>
+              <li>Funciones booleanas — cómo se responde sí/no ("boolean function")</li>
+              <li>Funciones — cómo se reutiliza lógica ("function")</li>
+              <li>Listas — cómo se agrupan varios datos ("array")</li>
+              <li>Seguridad — cómo se cuela código que no pediste ("dependency")</li>
+            </ul>
+          </div>
+          <div class="card">
+            <b>La notación que usaremos</b>
+            <ul>
+              <li>No usaremos un lenguaje real todavía</li>
+              <li>Escribiremos en <em>pseudocódigo</em>: instrucciones en español, con una estructura fija</li>
+              <li>Palabras clave como <code style="color:var(--coral)">SI</code>, <code style="color:var(--coral)">MIENTRAS</code>, <code style="color:var(--coral)">FUNCION</code> marcan cada pieza</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4 · 01 VARIABLES -->
+    <section class="slide" data-icon="circle" data-title="Variables">
+      <div class="slide-inner">
+        <div class="mod-head reveal">
+          <div class="node circle"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg></div>
+          <div class="mod-head-text"><div class="module-label">Módulo 01</div><h2>Variables: <span>cajas con nombre</span> <span class="entag">"variable"</span></h2></div>
+        </div>
+        <div class="analogy reveal"><b>La analogía de la caja etiquetada.</b> Una variable es una caja donde guardas un dato, con una etiqueta pegada para poder encontrarla luego. No importa lo que haya dentro hoy — mañana puedes vaciarla y meter otra cosa distinta. Lo único fijo es la etiqueta: el nombre.</div>
+        <div class="definition reveal"><div><b>En una frase</b>Una variable es un espacio con nombre que guarda un dato que puede cambiar mientras el programa se ejecuta. En la mayoría de lenguajes se declara con <code style="color:var(--coral)">let</code>, <code style="color:var(--coral)">var</code> o <code style="color:var(--coral)">const</code>, y se asigna con el signo <code style="color:var(--coral)">=</code> ("assign").</div></div>
+        <pre class="code reveal" data-label="pseudocódigo"><span class="kw">GUARDAR</span> "María" <span class="kw">EN</span> nombre   <span class="cm">// "store" ... "in"</span>
+<span class="kw">GUARDAR</span> 34 <span class="kw">EN</span> edad
+<span class="kw">GUARDAR</span> edad + 1 <span class="kw">EN</span> edad   <span class="cm">// la caja "edad" ahora vale 35</span></pre>
+        <details class="exercise reveal">
+          <summary>Ejercicio en grupo — 5 min</summary>
+          <p>En papel: escribe 3 variables que necesitarías para representar a un cliente de una tienda. Luego escribe una línea de pseudocódigo que actualice una de ellas.</p>
+          <div class="answer"><b>Pista</b> Piensa en datos que cambian con el tiempo (edad, puntos de fidelidad, saldo) frente a datos que no cambian (DNI).</div>
+        </details>
+      </div>
+    </section>
+
+    <!-- SLIDE 5 · 02 TIPOS DE DATO -->
+    <section class="slide" data-icon="circle" data-title="Tipos de dato">
+      <div class="slide-inner">
+        <div class="mod-head reveal">
+          <div class="node circle"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></div>
+          <div class="mod-head-text"><div class="module-label">Módulo 02</div><h2>Tipos de dato: <span>qué clase de cosa es</span> <span class="entag">"data type"</span></h2></div>
+        </div>
+        <p class="reveal" style="color:var(--ink-soft); font-size:15px; max-width:70ch;">No todas las cajas guardan lo mismo. Un programa necesita saber si lo que hay dentro es un número, una palabra o una respuesta de sí/no, porque cada tipo permite operaciones distintas.</p>
+        <table class="vartable reveal">
+          <tr><th>Tipo</th><th>Nombre en inglés</th><th>Ejemplo</th></tr>
+          <tr><td>Texto</td><td class="mono">"string"</td><td class="mono">"Antonella"</td></tr>
+          <tr><td>Entero</td><td class="mono">"integer" / "int"</td><td class="mono">42</td></tr>
+          <tr><td>Decimal</td><td class="mono">"float" / "double"</td><td class="mono">19.90</td></tr>
+          <tr><td>Booleano</td><td class="mono">"boolean" / "bool"</td><td class="mono">true / false</td></tr>
+          <tr><td>Lista</td><td class="mono">"array" / "list"</td><td class="mono">["rojo", "azul"]</td></tr>
+        </table>
+        <div class="definition reveal"><div><b>En una frase</b>El tipo de dato es la naturaleza de lo que hay en la caja, y determina qué operaciones tienen sentido sobre ella.</div></div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6 · 03 OPERADORES -->
+    <section class="slide" data-icon="circle" data-title="Operadores">
+      <div class="slide-inner">
+        <div class="mod-head reveal">
+          <div class="node circle"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M6 12h12M12 6v12"/></svg></div>
+          <div class="mod-head-text"><div class="module-label">Módulo 03</div><h2>Operadores: <span>verbos del código</span> <span class="entag">"operators"</span></h2></div>
+        </div>
+        <div class="grid2 reveal">
+          <div class="card"><b>Aritméticos · "arithmetic"</b><ul><li><code>+</code> suma — "add"</li><li><code>-</code> resta — "subtract"</li><li><code>*</code> multiplicación — "multiply"</li><li><code>/</code> división — "divide"</li></ul></div>
+          <div class="card"><b>Comparación · "comparison"</b><ul><li><code>==</code> es igual a — "equal"</li><li><code>!=</code> es distinto de — "not equal"</li><li><code>&gt;</code> / <code>&lt;</code> mayor / menor que — "greater" / "less than"</li></ul></div>
+        </div>
+        <p class="reveal" style="color:var(--ink-soft); font-size:15px;">Los operadores de comparación no devuelven un número: devuelven un booleano ("boolean"), <code style="color:var(--coral)">VERDADERO</code> ("true") o <code style="color:var(--coral)">FALSO</code> ("false").</p>
+        <pre class="code reveal" data-label="pseudocódigo"><span class="kw">GUARDAR</span> edad &gt; 18 <span class="kw">EN</span> esMayorDeEdad   <span class="cm">// = VERDADERO ("true") o FALSO ("false")</span></pre>
+      </div>
+    </section>
+
+    <!-- SLIDE 7 · 04 CONDICIONALES -->
+    <section class="slide" data-icon="diamond" data-title="Condicionales">
+      <div class="slide-inner">
+        <div class="mod-head reveal">
+          <div class="node diamond-wrap"><span class="diamond-box"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span></div>
+          <div class="mod-head-text"><div class="module-label">Módulo 04</div><h2>Condicionales: <span>el programa decide</span> <span class="entag">"if / else"</span></h2></div>
+        </div>
+        <div class="analogy reveal"><b>La analogía del cruce de caminos.</b> Un condicional ("conditional") es una bifurcación: "si esto es verdad, ve por aquí; si no, ve por allá".</div>
+        <div class="definition reveal"><div><b>En una frase</b>Un condicional ejecuta un bloque u otro dependiendo de si una condición es VERDADERA o FALSA.</div></div>
+        <pre class="code reveal" data-label="pseudocódigo"><span class="kw">SI</span> edad &gt; 18 <span class="kw">ENTONCES</span>   <span class="cm">// "if" ... "then"</span>
+    MOSTRAR "Puedes entrar"
+<span class="kw">SINO</span>   <span class="cm">// "else"</span>
+    MOSTRAR "Eres menor de edad"
+<span class="kw">FIN SI</span></pre>
+        <details class="exercise reveal">
+          <summary>Ejercicio en grupo — 10 min</summary>
+          <p>Escribe la lógica de una máquina expendedora: si el dinero introducido es suficiente, entrega el producto; si no, muestra cuánto falta.</p>
+          <div class="answer"><b>Pista</b> Dos variables (precio, dineroIntroducido) y un SI/SINO.</div>
+        </details>
+      </div>
+    </section>
+
+    <!-- SLIDE 8 · 05 BUCLES -->
+    <section class="slide accent-loop" data-icon="loop" data-title="Bucles">
+      <div class="slide-inner">
+        <div class="mod-head reveal">
+          <div class="node circle loop"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 12v-2a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 12v2a4 4 0 01-4 4H3"/></svg></div>
+          <div class="mod-head-text"><div class="module-label">Módulo 05</div><h2>Bucles: <span>repetir sin copiar y pegar</span> <span class="entag">"loop"</span></h2></div>
+        </div>
+        <div class="analogy reveal"><b>La analogía de la cinta de correr.</b> Un bucle repite un tramo de instrucciones mientras se cumpla una condición, en vez de escribir la misma línea 50 veces.</div>
+        <div class="grid2 reveal">
+          <div class="card"><b>MIENTRAS — "while"</b><pre class="code" data-label="pseudocódigo" style="margin:8px 0 0;"><span class="kw">GUARDAR</span> 0 <span class="kw">EN</span> contador
+<span class="kw">MIENTRAS</span> contador &lt; 5
+    MOSTRAR contador
+    <span class="kw">GUARDAR</span> contador + 1 <span class="kw">EN</span> contador
+<span class="kw">FIN MIENTRAS</span></pre></div>
+          <div class="card"><b>PARA CADA — "for" / "for each"</b><pre class="code" data-label="pseudocódigo" style="margin:8px 0 0;"><span class="kw">PARA CADA</span> numero <span class="kw">EN</span> [1,2,3,4,5]
+    MOSTRAR numero * 2
+<span class="kw">FIN PARA</span></pre></div>
+        </div>
+        <p class="reveal end-note" style="text-align:left; margin-top:8px;">↳ Este bloque se retoma con más profundidad en el siguiente curso.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 9 · 06 FUNCIONES BOOLEANAS -->
+    <section class="slide" data-icon="bool" data-title="Funciones booleanas">
+      <div class="slide-inner">
+        <div class="mod-head reveal">
+          <div class="node bool"><svg viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div>
+          <div class="mod-head-text"><div class="module-label">Módulo 06</div><h2>Funciones booleanas: <span>máquinas de sí o no</span> <span class="entag">"boolean function"</span></h2></div>
+        </div>
+        <div class="definition reveal"><div><b>En una frase</b>Una función booleana evalúa una pregunta sobre uno o varios datos y solo puede devolver VERDADERO ("true") o FALSO ("false").</div></div>
+        <div class="venn-row reveal">
+          <div class="venn-card">
+            <div class="venn-title">Y <span>"and"</span></div>
+            <div class="venn-sub">Se cumplen los dos términos</div>
+            <svg viewBox="0 0 220 160" class="venn-svg">
+              <defs><clipPath id="clipB-and"><circle cx="140" cy="80" r="55"/></clipPath></defs>
+              <circle class="venn-fill fill-sage" cx="80" cy="80" r="55" clip-path="url(#clipB-and)"/>
+              <circle class="venn-outline" cx="80" cy="80" r="55"/>
+              <circle class="venn-outline" cx="140" cy="80" r="55"/>
+              <text x="52" y="86" class="venn-letter">A</text>
+              <text x="168" y="86" class="venn-letter">B</text>
+            </svg>
+            <div class="venn-code mono">A <b>&amp;&amp;</b> B <span>→</span> true</div>
+          </div>
+          <div class="venn-card">
+            <div class="venn-title">O <span>"or"</span></div>
+            <div class="venn-sub">Se cumple al menos uno</div>
+            <svg viewBox="0 0 220 160" class="venn-svg">
+              <circle class="venn-fill fill-amber" cx="80" cy="80" r="55"/>
+              <circle class="venn-fill fill-amber" cx="140" cy="80" r="55"/>
+              <circle class="venn-outline" cx="80" cy="80" r="55"/>
+              <circle class="venn-outline" cx="140" cy="80" r="55"/>
+              <text x="52" y="86" class="venn-letter">A</text>
+              <text x="168" y="86" class="venn-letter">B</text>
+            </svg>
+            <div class="venn-code mono">A <b>||</b> B <span>→</span> true</div>
+          </div>
+          <div class="venn-card">
+            <div class="venn-title">NO <span>"not"</span></div>
+            <div class="venn-sub">Se cumple A, excluyendo B</div>
+            <svg viewBox="0 0 220 160" class="venn-svg">
+              <circle class="venn-fill fill-coral" cx="80" cy="80" r="55"/>
+              <circle class="venn-mask" cx="140" cy="80" r="55"/>
+              <circle class="venn-outline" cx="80" cy="80" r="55"/>
+              <circle class="venn-outline" cx="140" cy="80" r="55"/>
+              <text x="52" y="86" class="venn-letter">A</text>
+              <text x="168" y="86" class="venn-letter" style="fill:var(--ink-faint)">B</text>
+            </svg>
+            <div class="venn-code mono">A <b>&amp;&amp; !</b>B <span>→</span> true</div>
+          </div>
+        </div>
+        <pre class="code reveal" data-label="pseudocódigo"><span class="kw">FUNCION</span> <span class="fn">puedeEntrar</span>(edad, tieneEntrada)   <span class="cm">// "function"</span>
+    <span class="kw">DEVOLVER</span> edad &gt; 18 <span class="kw">Y</span> tieneEntrada   <span class="cm">// "return"</span>
+<span class="kw">FIN FUNCION</span></pre>
+      </div>
+    </section>
+
+    <!-- SLIDE 10 · 07 FUNCIONES -->
+    <section class="slide" data-icon="hex" data-title="Funciones">
+      <div class="slide-inner">
+        <div class="mod-head reveal">
+          <div class="node hex-wrap">
+            <svg class="hex-outline" viewBox="0 0 56 56" aria-hidden="true"><polygon points="15,3 41,3 55,28 41,53 15,53 1,28"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h6v6H9z"/></svg>
+          </div>
+          <div class="mod-head-text"><div class="module-label">Módulo 07</div><h2>Funciones: <span>bloques reutilizables</span> <span class="entag">"function"</span></h2></div>
+        </div>
+        <div class="analogy reveal"><b>La analogía de la máquina de café.</b> Una función recibe parámetros ("parameters") y devuelve ("return") un resultado, sin que tengas que saber cómo funciona por dentro cada vez. Las funciones booleanas son solo un caso particular: su único resultado posible es VERDADERO o FALSO.</div>
+        <pre class="code reveal" data-label="pseudocódigo"><span class="kw">FUNCION</span> <span class="fn">calcularDescuento</span>(precio, porcentaje)
+    <span class="kw">GUARDAR</span> precio * (porcentaje / 100) <span class="kw">EN</span> descuento
+    <span class="kw">DEVOLVER</span> precio - descuento
+<span class="kw">FIN FUNCION</span>
+
+<span class="kw">GUARDAR</span> <span class="fn">calcularDescuento</span>(50, 20) <span class="kw">EN</span> precioFinal   <span class="cm">// = 40</span></pre>
+        <details class="exercise reveal">
+          <summary>Ejercicio en grupo — 10 min</summary>
+          <p>Escribe <code>puedeComprar(edad, precio, dinero)</code> usando internamente la lógica booleana del módulo anterior.</p>
+          <div class="answer"><b>Pista</b> DEVOLVER edad &gt; 18 Y dinero &gt;= precio.</div>
+        </details>
+      </div>
+    </section>
+
+    <!-- SLIDE 11 · 08 LISTAS -->
+    <section class="slide" data-icon="circle" data-title="Listas">
+      <div class="slide-inner">
+        <div class="mod-head reveal">
+          <div class="node circle"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><rect x="4" y="5" width="6" height="6"/><rect x="14" y="5" width="6" height="6"/><rect x="4" y="15" width="6" height="6"/><rect x="14" y="15" width="6" height="6"/></svg></div>
+          <div class="mod-head-text"><div class="module-label">Módulo 08</div><h2>Listas: <span>varias cajas en fila</span> <span class="entag">"array" / "list"</span></h2></div>
+        </div>
+        <div class="analogy reveal"><b>La analogía del casillero.</b> Una lista es un mueble con casillas numeradas. En vez de crear una variable por cliente, se guardan todos en una lista y se recorre con un bucle.</div>
+        <pre class="code reveal" data-label="pseudocódigo"><span class="kw">GUARDAR</span> ["María", "Luca", "Sofía"] <span class="kw">EN</span> clientes
+
+<span class="kw">PARA CADA</span> cliente <span class="kw">EN</span> clientes
+    MOSTRAR "Hola, " + cliente   <span class="cm">// "show" / "print"</span>
+<span class="kw">FIN PARA</span></pre>
+      </div>
+    </section>
+
+    <!-- SLIDE 12 · 09 SEGURIDAD -->
+    <section class="slide" data-icon="shield" data-title="Seguridad">
+      <div class="slide-inner">
+        <div class="mod-head reveal">
+          <div class="node warn"><svg viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z"/><path d="M12 8v5"/><circle cx="12" cy="16.3" r=".6" fill="var(--coral)" stroke="none"/></svg></div>
+          <div class="mod-head-text"><div class="module-label">Módulo 09</div><h2>Seguridad: <span>cuando el código no es tuyo</span> <span class="entag">"dependency"</span></h2></div>
+        </div>
+        <div class="analogy reveal"><b>La analogía del proveedor de confianza.</b> Casi ningún programa se escribe desde cero: se construye importando "dependencias" — código publicado por otras personas en repositorios como npm, PyPI o GitHub. Al instalar una dependencia, tu máquina no solo copia ese código: a menudo lo <em>ejecuta</em> automáticamente. Si confías en el proveedor equivocado, le estás dando las llaves de tu ordenador.</div>
+        <div class="definition reveal"><div><b>En una frase</b>Una dependencia comprometida puede ejecutar código no deseado en tu máquina en el momento mismo de instalarla, no solo cuando la usas.</div></div>
+        <div class="grid2 reveal">
+          <div class="card">
+            <b>Formas habituales de colar código</b>
+            <ul>
+              <li><b style="color:var(--ink); font-family:inherit;">Typosquatting</b> — un paquete con nombre casi idéntico a uno popular (<code>reqeusts</code> en vez de <code>requests</code>)</li>
+              <li><b style="color:var(--ink); font-family:inherit;">Dependency confusion</b> — un paquete "interno" con el mismo nombre se publica en el repositorio público con una versión más alta</li>
+              <li><b style="color:var(--ink); font-family:inherit;">Cuenta de mantenedor robada</b> — alguien publica una versión nueva de una librería de confianza con código añadido</li>
+              <li><b style="color:var(--ink); font-family:inherit;">Constantes ofuscadas</b> — un dato "inocente" (una cadena codificada) que en realidad se decodifica y ejecuta al instalar</li>
+            </ul>
+          </div>
+          <div class="card">
+            <b>Buenas prácticas del grupo</b>
+            <ul>
+              <li>Fijar versiones exactas con un lockfile, nunca instalar "la última" a ciegas</li>
+              <li>Revisar quién mantiene la librería y desde cuándo, antes de añadirla</li>
+              <li>No copiar y pegar comandos de instalación sin entender qué hacen</li>
+              <li>Usar herramientas de auditoría (<code>npm audit</code>, <code>pip-audit</code>) antes de desplegar</li>
+            </ul>
+          </div>
+        </div>
+        <pre class="code reveal" data-label="pseudocódigo — patrón de riesgo"><span class="kw">GUARDAR</span> "aHR0cDovL2Rlc2Nvbm9jaWRvLmV4YW1wbGU=" <span class="kw">EN</span> configUrl   <span class="cm">// parece un dato cualquiera...</span>
+
+<span class="kw">SI</span> instalando <span class="kw">ENTONCES</span>
+    EJECUTAR <span class="fn">decodificar</span>(configUrl)   <span class="cm">// ...pero se decodifica y ejecuta solo, sin pedir permiso</span>
+<span class="kw">FIN SI</span></pre>
+        <p class="reveal" style="color:var(--ink-soft); font-size:15px;">Fíjate en la condición: <code style="color:var(--coral)">SI instalando</code> es otra vez una función booleana (módulo 06) — solo que aquí decide algo peligroso. La lógica que aprendisteis hoy sirve tanto para construir como para reconocer cuándo alguien la usa en tu contra.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 13 · 10 INTEGRADO -->
+    <section class="slide" data-icon="stack" data-title="Todo junto">
+      <div class="slide-inner finale">
+        <div class="module-label reveal" style="color:#8FA3C4; font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:.1em;">Módulo 10 — Cierre</div>
+        <h2 class="reveal">Las ocho piezas, juntas</h2>
+        <p class="reveal">Este programa calcula si cada cliente de una lista tiene descuento por ser mayor de 65 años. Usa variables, tipos de dato, un operador de comparación, una función, un condicional y un bucle recorriendo una lista. Todo lo visto hoy, combinado.</p>
+        <pre class="code reveal" data-label="pseudocódigo"><span class="kw">FUNCION</span> <span class="fn">calcularPrecio</span>(edad, precioBase)
+    <span class="kw">SI</span> edad &gt; 65 <span class="kw">ENTONCES</span>
+        <span class="kw">DEVOLVER</span> precioBase * 0.8
+    <span class="kw">SINO</span>
+        <span class="kw">DEVOLVER</span> precioBase
+    <span class="kw">FIN SI</span>
+<span class="kw">FIN FUNCION</span>
+
+<span class="kw">GUARDAR</span> [25, 70, 40, 68] <span class="kw">EN</span> edadesClientes
+
+<span class="kw">PARA CADA</span> edad <span class="kw">EN</span> edadesClientes
+    <span class="kw">GUARDAR</span> <span class="fn">calcularPrecio</span>(edad, 20) <span class="kw">EN</span> precioFinal
+    MOSTRAR "Cliente de " + edad + " años paga " + precioFinal
+<span class="kw">FIN PARA</span></pre>
+      </div>
+    </section>
+
+    <!-- SLIDE 14 · GLOSARIO -->
+    <section class="slide" data-icon="circle" data-title="Glosario">
+      <div class="slide-inner">
+        <h2 class="reveal" style="margin-bottom:18px;">Glosario rápido</h2>
+        <div class="gloss-grid reveal">
+          <div class="gloss-item"><b>Variable · "variable"</b><span>Espacio con nombre que guarda un dato que puede cambiar.</span></div>
+          <div class="gloss-item"><b>Tipo de dato · "data type"</b><span>Naturaleza del contenido: texto, número, booleano, lista.</span></div>
+          <div class="gloss-item"><b>Operador · "operator"</b><span>Símbolo que combina o compara valores.</span></div>
+          <div class="gloss-item"><b>Booleano · "boolean"</b><span>Valor que solo puede ser VERDADERO ("true") o FALSO ("false").</span></div>
+          <div class="gloss-item"><b>Condicional · "if statement"</b><span>Bifurcación que ejecuta un bloque u otro según una condición.</span></div>
+          <div class="gloss-item"><b>Bucle · "loop"</b><span>Bloque que se repite mientras se cumpla una condición.</span></div>
+          <div class="gloss-item"><b>Función booleana · "boolean function"</b><span>Función cuyo único resultado posible es "true" o "false".</span></div>
+          <div class="gloss-item"><b>Función · "function"</b><span>Bloque con nombre, reutilizable, que puede devolver ("return") un resultado.</span></div>
+          <div class="gloss-item"><b>Parámetro · "parameter"</b><span>Dato que se le entrega a una función al llamarla.</span></div>
+          <div class="gloss-item"><b>Lista · "array" / "list"</b><span>Colección ordenada de varios datos bajo una sola variable.</span></div>
+          <div class="gloss-item"><b>Dependencia · "dependency"</b><span>Código de otra persona que tu programa importa y, a menudo, ejecuta automáticamente al instalarlo.</span></div>
+        </div>
+        <div class="end-note reveal">Lógica de programación · material de formación · 14 diapositivas</div>
+      </div>
+    </section>
+
+  </div>
+
+<script>
+  const deck = document.getElementById('deck');
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const trackLine = document.getElementById('trackLine');
+  const curNum = document.getElementById('curNum');
+  const totNum = document.getElementById('totNum');
+  const btnPrev = document.getElementById('btnPrev');
+  const btnNext = document.getElementById('btnNext');
+
+  totNum.textContent = String(slides.length).padStart(2,'0');
+
+  const iconPaths = {
+    stack: '<path d="M4 6h16M4 12h16M4 18h10"/>',
+    circle: '<circle cx="12" cy="12" r="4"/>',
+    diamond: '<path d="M9 6l6 6-6 6"/>',
+    loop: '<path d="M17 2l4 4-4 4M3 12v-2a4 4 0 014-4h14M7 22l-4-4 4-4M21 12v2a4 4 0 01-4 4H3"/>',
+    hex: '<path d="M9 9h6v6H9z"/>',
+    bool: '<path d="M9 12l2 2 4-4"/>'
+  };
+
+  slides.forEach((s, i) => {
+    const icon = s.dataset.icon || 'circle';
+    const b = document.createElement('button');
+    b.className = 'tnode' + (icon === 'diamond' ? ' diamond' : '');
+    b.title = s.dataset.title || ('Diapositiva ' + (i+1));
+    b.addEventListener('click', () => goTo(i));
+    trackLine.appendChild(b);
+  });
+  const tnodes = Array.from(trackLine.querySelectorAll('.tnode'));
+
+  let current = 0;
+
+  function goTo(i){
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    slides[i].scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' });
+  }
+
+  function setActive(i){
+    current = i;
+    tnodes.forEach((n,idx) => n.classList.toggle('active', idx === i));
+    curNum.textContent = String(i+1).padStart(2,'0');
+    btnPrev.disabled = i === 0;
+    btnNext.disabled = i === slides.length - 1;
+    slides.forEach((s,idx) => { if (idx === i) s.classList.add('in-view'); });
+    const active = tnodes[i];
+    if (active) active.scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' });
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+        const idx = slides.indexOf(entry.target);
+        if (idx !== -1) setActive(idx);
+      }
+    });
+  }, { root: deck, threshold: [0.6] });
+  slides.forEach(s => observer.observe(s));
+
+  btnPrev.addEventListener('click', () => goTo(current - 1));
+  btnNext.addEventListener('click', () => goTo(current + 1));
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  setActive(0);
+</script>
+
+</body>
+</html>

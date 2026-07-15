@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manual Técnico — VSCode, Markdown, Git &amp; Ciberseguridad</title>
+<title>Formaciones IA — Cursos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
@@ -16,16 +16,15 @@
     --blue: #2B6CB0;
     --blue-deep: #163A5C;
     --rust: #B3401C;
-    --rust-bg: #FBEDE7;
+    --amber: #B5791A;
     --panel: #FFFFFF;
     --mono: 'IBM Plex Mono', monospace;
     --sans: 'IBM Plex Sans', sans-serif;
     --cond: 'IBM Plex Sans Condensed', sans-serif;
   }
-  *{box-sizing:border-box;}
+  *{box-sizing:border-box; margin:0; padding:0;}
   html,body{height:100%;}
   body{
-    margin:0;
     background:var(--paper);
     background-image:
       linear-gradient(var(--paper-line) 1px, transparent 1px),
@@ -33,813 +32,186 @@
     background-size: 28px 28px;
     color:var(--ink);
     font-family:var(--sans);
-    font-size:18px;
-    line-height:1.62;
-    overflow:hidden;
-  }
-  a{color:var(--blue);}
-  code{font-family:var(--mono);}
-
-  /* ================= APP SHELL ================= */
-  .app{
-    height:100vh;
+    line-height:1.5;
+    min-height:100vh;
     display:flex;
     flex-direction:column;
   }
+  a{color:inherit; text-decoration:none;}
 
-  /* ---------- top bar ---------- */
-  .topbar{
+  header{
+    padding:56px 24px 36px;
+    text-align:center;
+  }
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--blue);
+    margin-bottom:14px;
+  }
+  h1{
+    font-family:var(--cond);
+    font-weight:700;
+    font-size:clamp(28px,5vw,44px);
+    color:var(--blue-deep);
+    letter-spacing:-0.01em;
+  }
+  header p{
+    margin-top:12px;
+    color:var(--ink-soft);
+    font-size:16px;
+    max-width:560px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  main{
+    flex:1;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:0 24px 64px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
+    gap:24px;
+    max-width:900px;
+    width:100%;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--paper-line);
+    border-radius:10px;
+    padding:28px 26px 26px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    box-shadow:0 1px 2px rgba(22,35,58,.04);
+  }
+  .card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 24px rgba(22,35,58,.10);
+    border-color:var(--accent, var(--blue));
+  }
+  .card .tag{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--accent, var(--blue));
     display:flex;
     align-items:center;
-    gap:18px;
-    padding:10px 18px;
-    border-bottom:1px solid var(--paper-line);
-    flex:none;
-    background:var(--paper);
+    gap:8px;
   }
-  .topbar-doc{
-    font-family:var(--mono);
-    font-size:10.5px;
+  .card .tag::before{
+    content:"";
+    width:7px; height:7px;
+    background:var(--accent, var(--blue));
+    border-radius:50%;
+    flex:none;
+  }
+  .card h2{
+    font-family:var(--cond);
+    font-weight:700;
+    font-size:24px;
+    color:var(--ink);
+    line-height:1.25;
+  }
+  .card h2 em{
+    color:var(--accent, var(--blue));
+    font-style:normal;
+  }
+  .card p.desc{
     color:var(--ink-soft);
-    line-height:1.3;
-    flex:none;
-    white-space:nowrap;
+    font-size:14.5px;
+    flex:1;
   }
-  .topbar-doc b{color:var(--ink); display:block; font-size:11.5px;}
-
-  .chapters{
+  .card .meta{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--ink-soft);
     display:flex;
+    flex-wrap:wrap;
     gap:6px;
-    overflow-x:auto;
-    flex:1;
-    scrollbar-width:none;
-    padding:2px 0;
   }
-  .chapters::-webkit-scrollbar{display:none;}
-  .chip{
-    font-family:var(--mono); font-size:10.5px; white-space:nowrap;
-    color:var(--ink-soft); background:var(--panel);
-    border:1px solid var(--paper-line); border-radius:20px;
-    padding:6px 13px; cursor:pointer; transition:all .15s; flex:none;
-    display:flex; align-items:center; gap:6px;
+  .card .meta span{
+    background:var(--paper);
+    border:1px solid var(--paper-line);
+    border-radius:20px;
+    padding:3px 10px;
   }
-  .chip .num{color:var(--blue); font-weight:600;}
-  .chip:hover{border-color:var(--blue); color:var(--blue);}
-  .chip.active{background:var(--blue-deep); border-color:var(--blue-deep); color:#fff;}
-  .chip.active .num{color:#9CC3EA;}
-
-  .topbar-right{
-    display:flex; align-items:center; gap:10px; flex:none;
-  }
-  .counter{
-    font-family:var(--mono); font-size:12px; color:var(--ink-soft); white-space:nowrap;
-  }
-  .counter b{color:var(--ink);}
-  .iconbtn{
-    font-family:var(--mono); font-size:11px; color:var(--ink-soft);
-    background:var(--panel); border:1px solid var(--paper-line); border-radius:2px;
-    padding:6px 10px; cursor:pointer; white-space:nowrap;
-  }
-  .iconbtn:hover{border-color:var(--blue); color:var(--blue);}
-
-  /* ---------- stage ---------- */
-  .stage{
-    flex:1;
-    position:relative;
+  .card .go{
+    margin-top:6px;
+    font-family:var(--mono);
+    font-size:13px;
+    font-weight:600;
+    color:var(--accent, var(--blue));
     display:flex;
-    min-height:0;
+    align-items:center;
+    gap:6px;
   }
-  .arrow{
-    flex:none; width:60px;
-    border:none; background:transparent; cursor:pointer;
-    font-family:var(--mono); font-size:22px; color:#B9C6D4;
-    transition:color .15s, background .15s;
-    z-index:3;
+  .card .go::after{
+    content:"→";
+    transition:transform .15s ease;
   }
-  .arrow:hover{ color:var(--blue); background:rgba(43,108,176,.06); }
-  .arrow:disabled{opacity:.25; cursor:default; background:transparent; color:#B9C6D4;}
-
-  .slide-viewport{
-    flex:1; position:relative; overflow:hidden;
-  }
-  .clickzone{ display:none; }
-
-  .slide{
-    position:absolute; inset:0;
-    display:flex; flex-direction:column;
-    padding:8px clamp(24px, 6vw, 90px) 8px clamp(24px, 6vw, 90px);
-    animation: slideIn .3s ease;
-  }
-  @keyframes slideIn{ from{opacity:0; transform:translateX(10px);} to{opacity:1; transform:translateX(0);} }
-
-  .slide-inner{
-    max-width:1240px; width:100%; margin:0 auto;
-    height:100%;
-    display:flex; flex-direction:column;
-    min-height:0;
-  }
-  .slide-head{
-    display:flex; align-items:flex-end; gap:18px;
-    padding:26px 0 18px 0;
-    flex:none;
-    border-bottom:1px solid var(--paper-line);
-  }
-  .slide-num{
-    font-family:var(--mono); font-size:15px; color:var(--blue);
-    border:1px solid var(--blue); border-radius:2px; padding:4px 11px; flex:none;
-  }
-  .slide-chapter{
-    font-family:var(--mono); font-size:12px; letter-spacing:.12em;
-    text-transform:uppercase; color:var(--ink-soft); margin-bottom:3px;
-  }
-  .slide-title{ font-family:var(--cond); font-weight:700; font-size:clamp(26px, 3vw, 36px); margin:0; color:var(--ink); }
-
-  .slide-body{
-    flex:1; min-height:0; overflow-y:auto;
-    padding:26px 4px 34px 4px;
-    font-size:1.08em;
-  }
-  .slide-body::-webkit-scrollbar{width:6px;}
-  .slide-body::-webkit-scrollbar-thumb{background:var(--paper-line); border-radius:3px;}
-
-  .lede{ color:var(--ink-soft); font-size:1.15em; margin:0 0 20px 0; }
-
-  h3.sub{
-    font-family:var(--cond); font-weight:700; font-size:1.3em; color:var(--blue-deep);
-    margin:26px 0 10px 0; padding-left:12px; border-left:3px solid var(--blue);
-  }
-  h3.sub:first-child{margin-top:0;}
-  h4.sub2{ font-family:var(--sans); font-weight:600; font-size:1.1em; margin:20px 0 8px 0; }
-
-  ol.steps{ list-style:none; counter-reset:step; padding:0; margin:0 0 18px 0; }
-  ol.steps li{
-    counter-increment:step; position:relative; padding:8px 0 8px 44px; font-size:1.08em;
-  }
-  ol.steps li::before{
-    content:counter(step); position:absolute; left:0; top:8px;
-    font-family:var(--mono); font-size:13px; color:#fff; background:var(--blue-deep);
-    width:26px; height:26px; border-radius:2px; display:flex; align-items:center; justify-content:center;
-  }
-  ul.list{ margin:0 0 18px 0; padding:0; list-style:none; }
-  ul.list li{ position:relative; padding:6px 0 6px 24px; font-size:1.08em; }
-  ul.list li::before{ content:"—"; position:absolute; left:0; color:var(--blue); font-family:var(--mono); }
-  ul.list.risk li::before{content:"×"; color:var(--rust); font-weight:700;}
-
-  pre.code{
-    background:var(--blue-deep); color:#DCE7F2; font-family:var(--mono); font-size:0.85em;
-    line-height:1.65; border-radius:4px; overflow-x:auto; margin:14px 0 20px 0;
-  }
-  pre.code .bar{ display:flex; align-items:center; gap:6px; padding:9px 14px; border-bottom:1px solid rgba(255,255,255,.12); }
-  pre.code .bar span{ width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.25); }
-  pre.code .copy-btn{
-    margin-left:auto; font-family:var(--mono); font-size:11px; color:#B9D3EA;
-    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2);
-    border-radius:3px; padding:3px 10px; cursor:pointer; transition:background .15s, color .15s;
-  }
-  pre.code .copy-btn:hover{ background:rgba(255,255,255,.18); color:#fff; }
-  pre.code .copy-btn.copied{ background:var(--blue); border-color:var(--blue); color:#fff; }
-  pre.code code{ display:block; padding:14px 18px; white-space:pre-wrap; }
-
-  .box{
-    border:1px solid var(--paper-line); background:var(--panel); border-left:4px solid var(--blue);
-    padding:16px 22px; margin:18px 0; border-radius:2px;
-  }
-  .box .tag{ font-family:var(--mono); font-size:.72em; letter-spacing:.08em; color:var(--blue); margin-bottom:7px; text-transform:uppercase; }
-  .box p{ margin:0; font-size:1em; }
-  .box.warn{ border-left-color:var(--rust); background:var(--rust-bg); }
-  .box.warn .tag{ color:var(--rust); }
-  .box.warn .tag::before{content:"⚠ ";}
-
-  .checklist{ border:1px solid var(--ink); padding:4px 0; }
-  .checklist label{
-    display:flex; align-items:flex-start; gap:14px; padding:13px 22px; font-size:1.05em;
-    border-bottom:1px dashed var(--paper-line); cursor:pointer;
-  }
-  .checklist label:last-child{border-bottom:none;}
-  .checklist input{
-    appearance:none; width:19px; height:19px; border:1.5px solid var(--ink); margin-top:2px;
-    flex:none; border-radius:2px; position:relative; cursor:pointer;
-  }
-  .checklist input:checked{background:var(--blue); border-color:var(--blue);}
-  .checklist input:checked::after{
-    content:""; position:absolute; left:5px; top:1px; width:6px; height:10px;
-    border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg);
-  }
-  .checklist span.txt{transition:color .15s;}
-  .checklist input:checked ~ span.txt{color:#8494A8; text-decoration:line-through;}
-
-  /* ---------- cover slide ---------- */
-  .cover{ display:flex; flex-direction:column; justify-content:center; height:100%; gap:26px; }
-  .cover .eyebrow{
-    font-family:var(--mono); font-size:14px; letter-spacing:.14em; color:var(--blue);
-    display:flex; align-items:center; gap:10px;
-  }
-  .cover .eyebrow::before{content:"§";}
-  .cover .eyebrow .rule{flex:1;height:1px;background:var(--paper-line);}
-  .cover h1{
-    font-family:var(--cond); font-weight:700; font-size:clamp(32px,5vw,58px); line-height:1.08;
-    margin:0; color:var(--ink); max-width:1000px;
-  }
-  .cover .subtitle{ font-size:1.15em; color:var(--ink-soft); max-width:780px; margin:0; }
-  .titleblock{
-    display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--ink);
-    font-family:var(--mono); font-size:13px; max-width:940px;
-  }
-  .titleblock div{padding:11px 16px;border-right:1px solid var(--ink);}
-  .titleblock div:last-child{border-right:none;}
-  .titleblock span{display:block;color:var(--ink-soft);font-size:10.5px;letter-spacing:.08em;margin-bottom:4px;}
-  .titleblock strong{color:var(--ink);font-weight:600;}
-  .schematic svg{ width:100%; max-width:940px; height:auto; display:block; }
-
-  /* ---------- glossary term slide ---------- */
-  .term-slide{ display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center; }
-  .deck-cat{ font-family:var(--mono); font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--blue); margin-bottom:16px; }
-  .deck-term{ font-family:var(--mono); font-weight:600; font-size:clamp(30px,4.4vw,46px); color:var(--blue-deep); margin:0 0 10px 0; }
-  .deck-cmd{ display:inline-block; font-family:var(--mono); font-size:15px; background:var(--blue-deep); color:#fff; padding:4px 14px; border-radius:2px; margin-bottom:20px; }
-  .deck-def{ font-size:1.3em; color:var(--ink); max-width:760px; margin:0 auto 18px auto; }
-  .deck-ex{ font-family:var(--mono); font-size:14px; color:var(--ink-soft); background:var(--paper); border-left:2px solid var(--blue); padding:9px 16px; display:inline-block; text-align:left; }
-
-  /* ---------- bottom bar ---------- */
-  .bottombar{ flex:none; border-top:1px solid var(--paper-line); background:var(--paper); }
-  .progress-track{ height:3px; background:var(--paper-line); position:relative; }
-  .progress-fill{ height:100%; background:var(--blue); transition:width .25s ease; }
-  .progress-ticks{ position:absolute; inset:0; display:flex; }
-  .progress-ticks i{ flex:none; width:1px; background:var(--paper); height:100%; }
-  .hintbar{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:6px 18px; font-family:var(--mono); font-size:10px; color:#8494A8;
+  .card:hover .go::after{
+    transform:translateX(3px);
   }
 
-  /* ---------- overview grid ---------- */
-  .overview{
-    position:fixed; inset:0; background:rgba(22,35,58,.92); z-index:50;
-    display:none; padding:40px; overflow-y:auto;
-  }
-  .overview.open{display:block;}
-  .overview-head{
-    display:flex; justify-content:space-between; align-items:center;
-    max-width:1200px; margin:0 auto 20px auto; color:#fff; font-family:var(--mono); font-size:13px;
-  }
-  .overview-close{
-    background:none; border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:2px;
-    font-family:var(--mono); font-size:11px; padding:6px 12px; cursor:pointer;
-  }
-  .overview-grid{
-    max-width:1200px; margin:0 auto; display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:12px;
-  }
-  .ov-card{
-    background:var(--panel); border-radius:3px; padding:14px; cursor:pointer;
-    border:2px solid transparent; transition:border-color .15s;
-  }
-  .ov-card:hover{border-color:var(--blue);}
-  .ov-card.current{border-color:var(--blue); box-shadow:0 0 0 3px rgba(43,108,176,.2);}
-  .ov-card .ov-num{ font-family:var(--mono); font-size:10px; color:var(--blue); }
-  .ov-card .ov-chap{ font-family:var(--mono); font-size:9px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; margin:4px 0 6px 0;}
-  .ov-card .ov-title{ font-family:var(--cond); font-weight:700; font-size:13.5px; color:var(--ink); line-height:1.3; }
+  .card--manual{ --accent: var(--blue); }
+  .card--logica{ --accent: var(--amber); }
 
-  @media (max-width:760px){
-    .slide{padding:6px 18px;}
-    .arrow{width:34px; font-size:16px;}
-    .topbar-doc{display:none;}
-    .slide-title{font-size:20px;}
-    body{font-size:14px;}
+  footer{
+    text-align:center;
+    padding:20px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-soft);
+    border-top:1px solid var(--paper-line);
   }
 </style>
 </head>
 <body>
-<div class="app">
 
-  <div class="topbar">
-    <div class="topbar-doc"><b>MANUAL-VSC-GIT-SEC</b>Rev. 02 · Antonella</div>
-    <div class="chapters" id="chapters"></div>
-    <div class="topbar-right">
-      <span class="counter"><b id="counterCur">01</b> / <span id="counterTotal">00</span></span>
-      <button class="iconbtn" id="btnOverview">Vista general ⊞</button>
-      <button class="iconbtn" id="btnFullscreen">Pantalla completa ⤢</button>
+  <header>
+    <div class="kicker">Formaciones IA</div>
+    <h1>Cursos disponibles</h1>
+    <p>Material interactivo de formación técnica. Elegí un curso para empezar.</p>
+  </header>
+
+  <main>
+    <div class="grid">
+
+      <a class="card card--manual" href="manual-tecnico.html">
+        <div class="tag">Manual técnico</div>
+        <h2>VSCode, Markdown, Git &amp; <em>Ciberseguridad</em></h2>
+        <p class="desc">Guía práctica para instalar y usar VSCode, escribir en Markdown, crear una cuenta de GitHub, trabajar con CLIs de IA, clonar repositorios con Git y aplicar buenas prácticas de ciberseguridad.</p>
+        <div class="meta">
+          <span>9 capítulos</span>
+          <span>Nivel introductorio</span>
+        </div>
+        <div class="go">Entrar al curso</div>
+      </a>
+
+      <a class="card card--logica" href="logica-de-programacion_6.html">
+        <div class="tag">Curso base</div>
+        <h2>Lógica de <em>Programación</em></h2>
+        <p class="desc">Cómo piensa un programa: variables, tipos de dato, operadores, condicionales, bucles, funciones booleanas, funciones, listas y una primera mirada a la seguridad de las dependencias.</p>
+        <div class="meta">
+          <span>10 módulos</span>
+          <span>Nivel introductorio</span>
+        </div>
+        <div class="go">Entrar al curso</div>
+      </a>
+
     </div>
-  </div>
+  </main>
 
-  <div class="stage">
-    <button class="arrow prev" id="btnPrev" aria-label="Anterior">←</button>
-    <div class="slide-viewport" id="viewport">
-      <div class="slide" id="slide"></div>
-    </div>
-    <button class="arrow next" id="btnNext" aria-label="Siguiente">→</button>
-  </div>
+  <footer>formaciones-ia · publicado con GitHub Pages</footer>
 
-  <div class="bottombar">
-    <div class="progress-track">
-      <div class="progress-fill" id="progressFill"></div>
-      <div class="progress-ticks" id="progressTicks"></div>
-    </div>
-    <div class="hintbar">
-      <span>← → para navegar · clic en los laterales · F pantalla completa</span>
-      <span id="chapterLabel">Portada</span>
-    </div>
-  </div>
-</div>
-
-<div class="overview" id="overview">
-  <div class="overview-head">
-    <span id="overviewCount">VISTA GENERAL</span>
-    <button class="overview-close" id="btnCloseOverview">Cerrar ✕</button>
-  </div>
-  <div class="overview-grid" id="overviewGrid"></div>
-</div>
-
-<script>
-/* ================= CONTENT ================= */
-function copyCode(btn){
-  const codeEl = btn.closest('pre.code').querySelector('code');
-  const text = codeEl.innerText;
-  const showSuccess = () => {
-    const prev = 'Copiar';
-    btn.textContent = 'Copiado ✓';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = prev; btn.classList.remove('copied'); }, 1600);
-  };
-  const showError = () => {
-    btn.textContent = 'Error';
-    setTimeout(() => { btn.textContent = 'Copiar'; }, 1600);
-  };
-  const fallbackCopy = () => {
-    try {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.top = '-1000px';
-      ta.style.left = '-1000px';
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      const ok = document.execCommand('copy');
-      document.body.removeChild(ta);
-      if (ok) showSuccess(); else showError();
-    } catch (err) {
-      showError();
-    }
-  };
-  if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext !== false) {
-    navigator.clipboard.writeText(text).then(showSuccess).catch(fallbackCopy);
-  } else {
-    fallbackCopy();
-  }
-}
-
-const CH = ["Portada","VSCode","Markdown","Cuenta GitHub","CLIs de IA","Clonar con Git","Ciberseguridad","Checklist","Glosario"];
-
-const coverSlide = {
-  chapter:0, title:"Portada",
-  html: `
-  <div class="cover">
-    <div class="eyebrow">MANUAL TÉCNICO<div class="rule"></div>DOC. 01</div>
-    <h1>Instalación de VSCode, Markdown y Git — con criterio de ciberseguridad</h1>
-    <p class="subtitle">Guía paso a paso para preparar el entorno de desarrollo, con una sección dedicada a los riesgos reales de clonar repositorios e instalar paquetes, incluyendo el uso de asistentes como Claude Code.</p>
-    <div class="titleblock">
-      <div><span>Software</span><strong>VS Code · Git</strong></div>
-      <div><span>Alcance</span><strong>Windows / macOS / Linux</strong></div>
-      <div><span>Nivel</span><strong>Introductorio–Intermedio</strong></div>
-      <div><span>Sección crítica</span><strong>05 — Ciberseguridad</strong></div>
-    </div>
-    <div class="schematic">
-      <svg viewBox="0 0 1000 210" xmlns="http://www.w3.org/2000/svg">
-        <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#2B6CB0"/></marker></defs>
-        <line x1="20" y1="180" x2="980" y2="180" stroke="#C6D2DE" stroke-width="1"/>
-        <rect x="40" y="60" width="220" height="110" rx="3" fill="none" stroke="#16233A" stroke-width="1.5"/>
-        <line x1="40" y1="84" x2="260" y2="84" stroke="#16233A" stroke-width="1.5"/>
-        <circle cx="56" cy="72" r="3.5" fill="none" stroke="#16233A" stroke-width="1.2"/>
-        <circle cx="68" cy="72" r="3.5" fill="none" stroke="#16233A" stroke-width="1.2"/>
-        <circle cx="80" cy="72" r="3.5" fill="none" stroke="#16233A" stroke-width="1.2"/>
-        <text x="56" y="106" font-family="IBM Plex Mono" font-size="11" fill="#2B6CB0">$ git clone</text>
-        <text x="56" y="126" font-family="IBM Plex Mono" font-size="11" fill="#45566E">./repo &#8594;</text>
-        <text x="56" y="146" font-family="IBM Plex Mono" font-size="11" fill="#45566E">npm install</text>
-        <text x="40" y="196" font-family="IBM Plex Mono" font-size="10" fill="#8494A8">FIG.A — TERMINAL LOCAL</text>
-        <line x1="264" y1="115" x2="356" y2="115" stroke="#2B6CB0" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <rect x="360" y="40" width="280" height="150" rx="3" fill="none" stroke="#B3401C" stroke-width="1.3" stroke-dasharray="5 4"/>
-        <text x="372" y="56" font-family="IBM Plex Mono" font-size="10" fill="#B3401C">LÍMITE DE CONFIANZA</text>
-        <path d="M400 90 h55 l12 14 h95 v66 h-162 z" fill="none" stroke="#16233A" stroke-width="1.5"/>
-        <text x="410" y="150" font-family="IBM Plex Mono" font-size="10.5" fill="#45566E">package.json</text>
-        <text x="410" y="166" font-family="IBM Plex Mono" font-size="10.5" fill="#45566E">deps externas</text>
-        <circle cx="600" cy="70" r="13" fill="none" stroke="#B3401C" stroke-width="1.5"/>
-        <text x="595" y="75" font-family="IBM Plex Mono" font-size="14" fill="#B3401C">!</text>
-        <line x1="644" y1="115" x2="736" y2="115" stroke="#2B6CB0" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <path d="M780 55 l55 20 v50 c0 35 -25 55 -55 65 c-30 -10 -55 -30 -55 -65 v-50 z" fill="none" stroke="#16233A" stroke-width="1.5"/>
-        <path d="M758 118 l16 16 l30 -34" fill="none" stroke="#2B6CB0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <text x="736" y="196" font-family="IBM Plex Mono" font-size="10" fill="#8494A8">FIG.B — VERIFICACIÓN MANUAL</text>
-        <text x="880" y="100" font-family="IBM Plex Mono" font-size="10.5" fill="#45566E">registro</text>
-        <text x="880" y="114" font-family="IBM Plex Mono" font-size="10.5" fill="#45566E">oficial</text>
-        <text x="880" y="128" font-family="IBM Plex Mono" font-size="10.5" fill="#45566E">npm / PyPI</text>
-      </svg>
-    </div>
-  </div>`
-};
-
-function head(n, chap, title){
-  return `<div class="slide-head"><span class="slide-num">${n}</span><div><div class="slide-chapter">${chap}</div><h2 class="slide-title">${title}</h2></div></div>`;
-}
-function wrap(n, chap, title, body){
-  return { chapter: CH.indexOf(chap), title, html: `<div class="slide-inner">${head(n,chap,title)}<div class="slide-body">${body}</div></div>` };
-}
-
-const contentSlides = [
-  // ---------- VSCODE ----------
-  wrap("1.1","VSCode","Presentación e instalación en Windows", `
-    <p class="lede">VSCode es un editor de código gratuito de Microsoft, usado como entorno de trabajo junto a herramientas como Claude Code.</p>
-    <h3 class="sub">Windows</h3>
-    <ol class="steps">
-      <li>Ir a <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">code.visualstudio.com</a>.</li>
-      <li>Pulsar “Download for Windows”.</li>
-      <li>Ejecutar el instalador descargado (VSCodeUserSetup-x64-x.x.x.exe).</li>
-      <li>Aceptar el acuerdo de licencia y pulsar “Next”.</li>
-      <li>Marcar: icono en escritorio, “Add to PATH” (por defecto) y “Register Code as an editor”.</li>
-      <li>Pulsar “Install” y luego “Finish”.</li>
-      <li>Verificar en una terminal:</li>
-    </ol>
-    <pre class="code"><div class="bar"><span></span><span></span><span></span><button class="copy-btn" onclick="copyCode(this)">Copiar</button></div><code>code --version</code></pre>
-  `),
-  wrap("1.2","VSCode","Instalación en macOS", `
-    <ol class="steps">
-      <li>Descargar la versión para Mac desde la web oficial.</li>
-      <li>Descomprimir el .zip descargado.</li>
-      <li>Arrastrar “Visual Studio Code.app” a la carpeta Aplicaciones.</li>
-      <li>Abrir VSCode desde Launchpad o Spotlight.</li>
-      <li>Cmd+Shift+P → “Shell Command” → “Install 'code' command in PATH”.</li>
-      <li>Verificar con <code>code --version</code>.</li>
-    </ol>
-    <div class="box"><div class="tag">Nota</div><p>Descarga VSCode únicamente desde code.visualstudio.com. Evita instaladores de terceros o enlaces recibidos por correo/mensajería: existen versiones modificadas maliciosas del editor.</p></div>
-  `),
-  wrap("1.3","VSCode","Instalación en Linux (Debian/Ubuntu)", `
-    <p>Se recomienda el repositorio oficial de Microsoft, no fuentes de terceros:</p>
-    <pre class="code"><div class="bar"><span></span><span></span><span></span><button class="copy-btn" onclick="copyCode(this)">Copiar</button></div><code>sudo apt-get install wget gpg
-wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
-sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
-sudo sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
-sudo apt update
-sudo apt install code</code></pre>
-  `),
-
-  // ---------- MARKDOWN ----------
-  wrap("2.1","Markdown","Instalar Markdown All in One", `
-    <p class="lede">VSCode trae soporte básico de Markdown de forma nativa (Ctrl+Shift+V para vista previa). Para una experiencia completa se recomienda una extensión adicional.</p>
-    <ol class="steps">
-      <li>Abrir VSCode.</li>
-      <li>Ir al panel de Extensiones (Ctrl+Shift+X / Cmd+Shift+X).</li>
-      <li>Buscar “Markdown All in One” (autor: Yu Zhang).</li>
-      <li>Pulsar “Install”.</li>
-      <li>Reiniciar VSCode si se solicita.</li>
-    </ol>
-  `),
-  wrap("2.2","Markdown","Qué aporta la extensión", `
-    <ul class="list">
-      <li>Atajos de teclado para negrita, cursiva y listas.</li>
-      <li>Autocompletado de tabla de contenidos (TOC).</li>
-      <li>Vista previa en tiempo real y numeración automática de listas.</li>
-      <li>Exportación a HTML/PDF con extensiones complementarias.</li>
-    </ul>
-  `),
-  wrap("2.3","Markdown","Extensiones opcionales", `
-    <ul class="list">
-      <li>Markdown Preview Enhanced — vista previa con diagramas y fórmulas.</li>
-      <li>markdownlint — corrige errores de estilo y formato.</li>
-      <li>Paste Image — pegar imágenes directamente en el Markdown.</li>
-    </ul>
-    <div class="box"><div class="tag">Buena práctica</div><p>Instala solo extensiones con muchas instalaciones, buenas valoraciones y autor verificado (marca azul junto al nombre en el Marketplace).</p></div>
-  `),
-
-  // ---------- CUENTA GITHUB ----------
-  wrap("3.1","Cuenta GitHub","Por qué necesitas una cuenta", `
-    <p class="lede">GitHub es la plataforma donde viven los repositorios remotos: es necesaria una cuenta para clonar repositorios privados, crear los tuyos propios, subir cambios (push) o publicar una web con GitHub Pages, como el propio manual que estás leyendo.</p>
-  `),
-  wrap("3.2","Cuenta GitHub","Registro", `
-    <ol class="steps">
-      <li>Ir a <a href="https://github.com/signup" target="_blank" rel="noopener">github.com/signup</a>.</li>
-      <li>Introducir un correo electrónico, crear una contraseña y elegir un nombre de usuario — será público y forma parte de la URL de tus repositorios, así que conviene elegir uno estable y profesional.</li>
-      <li>Verificar el correo electrónico con el código que envía GitHub.</li>
-      <li>Responder a las preguntas opcionales sobre el uso previsto de la cuenta (se pueden omitir).</li>
-      <li>Elegir el plan “Free” — cubre repositorios públicos y privados ilimitados.</li>
-    </ol>
-  `),
-  wrap("3.3","Cuenta GitHub","Configuración recomendada tras el alta", `
-    <ul class="list">
-      <li>Activar la verificación en dos pasos (2FA) desde Settings → Password and authentication.</li>
-      <li>Configurar el nombre y el correo que Git usará para firmar tus commits:</li>
-    </ul>
-    <pre class="code"><div class="bar"><span></span><span></span><span></span><button class="copy-btn" onclick="copyCode(this)">Copiar</button></div><code>git config --global user.name "Tu Nombre"
-git config --global user.email "tu-correo@ejemplo.com"</code></pre>
-    <ul class="list">
-      <li>Conecta VSCode con la cuenta (Ctrl+Shift+P → “GitHub: Sign in”) o genera un token de acceso personal para usar por HTTPS.</li>
-      <li>Como alternativa, configura autenticación por clave SSH — evita introducir credenciales en cada push/pull.</li>
-    </ul>
-    <div class="box"><div class="tag">Nota</div><p>Da de alta la cuenta únicamente en github.com. Desconfía de páginas de “GitHub” enlazadas desde correos o mensajes no buscados por ti — es un objetivo habitual de phishing.</p></div>
-  `),
-
-  // ---------- CLIS DE IA ----------
-  wrap("4.1","CLIs de IA","Agentes de código en terminal", `
-    <p class="lede">Además de VSCode, existen asistentes de IA que trabajan directamente desde la terminal, leyendo y editando el código del proyecto. Estos tres son los más usados — instala solo el que vayas a usar.</p>
-    <div class="box"><div class="tag">Nota</div><p>Instala siempre desde el dominio oficial de cada herramienta (los de abajo). Un script <code>curl | bash</code> ejecuta código con tus permisos de usuario: revisa la URL antes de pegarla si viene de un enlace de tercero.</p></div>
-  `),
-  wrap("4.2","CLIs de IA","Claude Code (Anthropic)", `
-    <p class="lede">El agente de código de Anthropic. Requiere una cuenta Pro, Max, Team, Enterprise o de la API (el plan gratuito de Claude.ai no incluye Claude Code).</p>
-    <pre class="code"><div class="bar"><span></span><span></span><span></span><button class="copy-btn" onclick="copyCode(this)">Copiar</button></div><code># macOS / Linux (recomendado)
-curl -fsSL https://claude.ai/install.sh | bash
-
-# Windows (PowerShell)
-irm https://claude.ai/install.ps1 | iex
-
-# Alternativa vía npm (requiere Node.js 18+)
-npm install -g @anthropic-ai/claude-code
-
-# Verificar instalación
-claude --version</code></pre>
-  `),
-  wrap("4.3","CLIs de IA","Cursor CLI", `
-    <p class="lede">La versión de terminal del editor Cursor — mismo agente que su interfaz gráfica, pensado para scripts, CI/CD y uso sin ventana.</p>
-    <pre class="code"><div class="bar"><span></span><span></span><span></span><button class="copy-btn" onclick="copyCode(this)">Copiar</button></div><code># macOS / Linux / WSL
-curl https://cursor.com/install -fsS | bash
-
-# Verificar instalación
-cursor-agent --version</code></pre>
-  `),
-  wrap("4.4","CLIs de IA","OpenCode (código abierto)", `
-    <p class="lede">Agente de código open-source, agnóstico de proveedor — funciona con Anthropic, OpenAI, Gemini u modelos locales vía Ollama.</p>
-    <pre class="code"><div class="bar"><span></span><span></span><span></span><button class="copy-btn" onclick="copyCode(this)">Copiar</button></div><code># macOS / Linux (script oficial)
-curl -fsSL https://opencode.ai/install | bash
-
-# Alternativa vía npm
-npm i -g opencode-ai@latest
-
-# Verificar instalación
-opencode --version</code></pre>
-  `),
-
-  // ---------- CLONAR ----------
-  wrap("4.1","Clonar con Git","Antes de clonar", `
-    <p class="lede">Confirma que Git está instalado:</p>
-    <pre class="code"><div class="bar"><span></span><span></span><span></span><button class="copy-btn" onclick="copyCode(this)">Copiar</button></div><code>git --version</code></pre>
-    <p>Si falta: en Windows descárgalo de <a href="https://git-scm.com/" target="_blank" rel="noopener">git-scm.com</a>; en Mac, Herramientas de línea de comandos de Xcode o <code>brew install git</code>; en Linux, <code>sudo apt install git</code>.</p>
-  `),
-  wrap("4.2","Clonar con Git","Clonar un repositorio público", `
-    <ol class="steps">
-      <li>Copiar la URL del repositorio (HTTPS o SSH) desde GitHub/GitLab.</li>
-      <li>Abrir una terminal en la carpeta destino.</li>
-      <li>Ejecutar <code>git clone</code>:</li>
-    </ol>
-    <pre class="code"><div class="bar"><span></span><span></span><span></span><button class="copy-btn" onclick="copyCode(this)">Copiar</button></div><code>git clone https://github.com/usuario/nombre-repositorio.git
-cd nombre-repositorio
-code .</code></pre>
-  `),
-  wrap("4.3","Clonar con Git","Clonar directamente desde VSCode", `
-    <ol class="steps">
-      <li>Ctrl+Shift+P (Cmd+Shift+P en Mac) → “Git: Clone”.</li>
-      <li>Pegar la URL del repositorio.</li>
-      <li>Elegir la carpeta de destino.</li>
-      <li>Pulsar “Open” cuando VSCode pregunte si abrir el repositorio clonado.</li>
-    </ol>
-  `),
-
-  // ---------- CIBERSEGURIDAD ----------
-  wrap("5.1","Ciberseguridad","El riesgo de clonar “a ciegas”", `
-    <p class="lede">Clonar un repositorio no es un acto neutro: se descarga —y a menudo se ejecuta— código de terceros en tu propio equipo. Esto es especialmente relevante trabajando con Claude Code, que puede tener acceso a carpetas del sistema y ejecutar comandos por sí mismo.</p>
-    <p>Un repositorio puede incluir dependencias declaradas (package.json, requirements.txt, Cargo.toml, go.mod…) que se descargan automáticamente. Estas dependencias pueden:</p>
-    <ul class="list risk">
-      <li>Incluir librerías de otros lenguajes o binarios precompilados incrustados dentro de paquetes aparentemente inofensivos.</li>
-      <li>Ejecutar scripts de instalación automática (postinstall / preinstall) que corren código arbitrario sin confirmación explícita.</li>
-      <li>Conectarse a servidores externos con latencias muy bajas y patrones de tráfico diseñados para pasar desapercibidos.</li>
-      <li>Usar nombres casi idénticos a los legítimos (typosquatting).</li>
-    </ul>
-  `),
-  wrap("5.2","Ciberseguridad","Por qué importa con Claude Code", `
-    <div class="box warn"><div class="tag">Por qué importa con Claude Code</div><p>Claude Code puede clonar, instalar dependencias y ejecutar comandos de forma semi-autónoma. Si el repositorio contiene código malicioso, ese código puede ejecutarse con los mismos permisos que la sesión de Claude Code — incluyendo lectura o escritura en otras carpetas del equipo.</p></div>
-    <h4 class="sub2">Antes de clonar</h4>
-    <ul class="list">
-      <li>Revisa el repositorio en la web: estrellas, actividad reciente, autor/organización, issues abiertos.</li>
-      <li>Desconfía de repositorios recién creados, con pocos commits o nombres muy similares a proyectos populares.</li>
-      <li>Evita clonar enlaces recibidos por mensajes, foros o correos no verificados.</li>
-      <li>Clona en una carpeta de trabajo aislada, nunca en directorios con datos sensibles o credenciales.</li>
-      <li>Si vas a usar Claude Code con un repositorio desconocido, limita explícitamente sus permisos a esa carpeta del proyecto.</li>
-    </ul>
-  `),
-  wrap("5.3","Ciberseguridad","“Paquetes fantasma”: dependencias que no existen", `
-    <p>Un riesgo propio de trabajar con asistentes de IA (incluido Claude Code) es el llamado <em>slopsquatting</em>: el asistente sugiere instalar un paquete cuyo nombre suena plausible pero no existe en el registro oficial (npm, PyPI, crates.io…).</p>
-    <p>El problema no es solo que la instalación falle: un atacante puede detectar qué nombres inventados sugieren los modelos de IA con frecuencia y registrar ese nombre exacto en el repositorio público, publicando código malicioso bajo esa etiqueta.</p>
-  `),
-  wrap("5.4","Ciberseguridad","Cómo mitigar los paquetes fantasma", `
-    <ul class="list">
-      <li>Verifica manualmente en el registro oficial que el paquete sugerido existe y es el esperado.</li>
-      <li>Comprueba descargas, fecha de publicación, autor y coherencia con el repositorio de origen.</li>
-      <li>Revisa package.json / package-lock.json / requirements.txt tras cada instalación.</li>
-      <li>Fija versiones concretas y usa ficheros de bloqueo (lockfiles).</li>
-      <li>Ante la duda de si un paquete sugerido por una IA existe realmente, trátalo como no verificado hasta comprobarlo.</li>
-    </ul>
-  `),
-  wrap("5.5","Ciberseguridad","Permisos de instalación: nunca “todo permitido”", `
-    <ul class="list">
-      <li>No ejecutes instalaciones como administrador/root salvo necesidad comprendida.</li>
-      <li>No concedas a Claude Code “aprobar automáticamente” todas las instalaciones o comandos; revisa cada acción.</li>
-      <li>Revisa qué scripts de instalación va a ejecutar un paquete antes de aprobarlo.</li>
-      <li>Usa entornos aislados (VM, contenedores, entornos virtuales) para probar repositorios desconocidos.</li>
-      <li>Revisa periódicamente los permisos y carpetas a las que Claude Code tiene acceso.</li>
-    </ul>
-    <div class="box"><div class="tag">Principio clave</div><p>Ni el código de un repositorio, ni el nombre de un paquete, ni la sugerencia de una IA deben darse por buenos automáticamente. La verificación manual es la barrera más eficaz frente a dependencias maliciosas y paquetes fantasma.</p></div>
-  `),
-
-  // ---------- CHECKLIST ----------
-  wrap("6.1","Checklist","Checklist rápido de seguridad", `
-    <p class="lede">Verificación antes de clonar un repositorio o instalar dependencias. Marca cada punto sobre la marcha.</p>
-    <div class="checklist">
-      <label><input type="checkbox"><span class="txt">He revisado el repositorio en la web (autor, actividad, estrellas, issues).</span></label>
-      <label><input type="checkbox"><span class="txt">El nombre del repositorio y de los paquetes coincide exactamente con el esperado.</span></label>
-      <label><input type="checkbox"><span class="txt">He verificado en el registro oficial que cada paquete sugerido existe realmente.</span></label>
-      <label><input type="checkbox"><span class="txt">No estoy clonando en una carpeta con datos sensibles o credenciales.</span></label>
-      <label><input type="checkbox"><span class="txt">Voy a revisar el package.json / requirements.txt tras la instalación.</span></label>
-      <label><input type="checkbox"><span class="txt">No he concedido permisos de aprobación automática total a Claude Code.</span></label>
-      <label><input type="checkbox"><span class="txt">Estoy usando un entorno aislado (venv, contenedor, VM) para probar el proyecto.</span></label>
-      <label><input type="checkbox"><span class="txt">He limitado el acceso de Claude Code a la carpeta del proyecto en curso.</span></label>
-    </div>
-  `),
-];
-
-// ---------- GLOSARIO (term slides) ----------
-const glossaryGroups = [
-  { name: "Fundamentos", terms: [
-    { term: "Repositorio (repo)", cat: "Concepto", def: "La carpeta de un proyecto, pero con historial: Git guarda cada cambio que haces sobre esos archivos a lo largo del tiempo, no solo su estado actual." },
-    { term: "Clone (clonar)", cat: "Comando", cmd: "git clone", def: "Descarga una copia completa de un repositorio remoto a tu ordenador, incluyendo todo su historial de cambios.", ex: "git clone https://github.com/usuario/proyecto.git" },
-    { term: "Add / Staging area", cat: "Comando", cmd: "git add", def: "El paso intermedio donde eliges qué archivos concretos quieres incluir en el próximo commit.", ex: "git add index.html   ·   git add ." },
-    { term: "Commit", cat: "Comando", cmd: "git commit", def: "Una “foto” del estado de tus archivos guardada en el historial local, con un mensaje que explica qué cambió y por qué.", ex: "git commit -m \"Corrige el enlace roto del footer\"" },
-  ]},
-  { name: "Sincronización", terms: [
-    { term: "Push", cat: "Comando", cmd: "git push", def: "Sube tus commits locales al repositorio remoto (GitHub) para que queden guardados y visibles para otros.", ex: "git push origin main" },
-    { term: "Pull", cat: "Comando", cmd: "git pull", def: "Descarga los cambios más recientes del repositorio remoto y los mezcla con tu copia local.", ex: "git pull origin main" },
-    { term: "Fetch", cat: "Comando", cmd: "git fetch", def: "Descarga los cambios del remoto sin mezclarlos automáticamente — te deja revisar antes de aplicarlos. (Pull = fetch + merge)." },
-    { term: "Remote / Origin", cat: "Comando", cmd: "git remote", def: "La dirección del repositorio en la nube asociada a tu copia local. “origin” es el nombre por defecto que Git le da al clonar." },
-  ]},
-  { name: "Ramas y fusión", terms: [
-    { term: "Branch (rama)", cat: "Comando", cmd: "git branch", def: "Una línea de trabajo independiente dentro del mismo repositorio, para probar cambios sin tocar la versión estable.", ex: "git checkout -b nueva-funcionalidad" },
-    { term: "Checkout / Switch", cat: "Comando", cmd: "git checkout", def: "Cambia entre ramas o entre puntos del historial. También descarta cambios locales sobre un archivo concreto." },
-    { term: "Merge (fusionar)", cat: "Comando", cmd: "git merge", def: "Une los cambios de una rama con otra — típicamente incorpora una rama de funcionalidad terminada a main.", ex: "git merge nueva-funcionalidad" },
-    { term: "Conflicto", cat: "Situación", def: "Ocurre cuando Git no puede fusionar dos cambios automáticamente porque ambos modificaron la misma línea de forma distinta." },
-  ]},
-  { name: "GitHub", terms: [
-    { term: "Pull Request (PR)", cat: "GitHub", def: "Una propuesta formal de fusionar los cambios de una rama dentro de otra, para que otras personas revisen y aprueben antes de incorporarlos." },
-    { term: "Fork", cat: "GitHub", def: "Tu propia copia independiente de un repositorio ajeno dentro de tu cuenta — para proponer cambios donde no tienes permiso de escritura directo." },
-    { term: "Issue", cat: "GitHub", def: "Una tarea, error o propuesta registrada en GitHub, asociada a un repositorio, para hacer seguimiento del trabajo pendiente." },
-  ]},
-  { name: "Historial y utilidades", terms: [
-    { term: "HEAD", cat: "Concepto", def: "Un puntero que indica en qué commit y rama te encuentras ahora mismo dentro del historial." },
-    { term: "Status", cat: "Comando", cmd: "git status", def: "Muestra qué archivos has modificado, cuáles están preparados para el próximo commit, y en qué rama estás." },
-    { term: "Log", cat: "Comando", cmd: "git log", def: "Muestra el historial de commits: quién hizo cada cambio, cuándo y con qué mensaje." },
-    { term: "Diff", cat: "Comando", cmd: "git diff", def: "Muestra línea por línea qué ha cambiado entre dos versiones de un archivo." },
-    { term: "Stash", cat: "Comando", cmd: "git stash", def: "Guarda temporalmente cambios sin confirmar, dejando la carpeta limpia — útil para cambiar de rama sin perder ese trabajo." },
-    { term: "Revert", cat: "Comando", cmd: "git revert", def: "Deshace un commit creando uno nuevo “inverso”, sin borrar el historial — la forma segura de deshacer algo ya subido." },
-    { term: "Reset", cat: "Comando", cmd: "git reset", def: "Mueve el historial hacia atrás eliminando commits. A diferencia de revert, reescribe el historial." },
-    { term: "Rebase", cat: "Comando", cmd: "git rebase", def: "Reaplica commits de una rama sobre otra base, dejando un historial más lineal — potente pero delicado si otros comparten la rama." },
-    { term: ".gitignore", cat: "Archivo", def: "Un archivo de texto donde listas qué archivos o carpetas NO quieres que Git rastree ni suba (node_modules, credenciales locales…)." },
-    { term: "README", cat: "Archivo", def: "El archivo que GitHub muestra automáticamente al entrar en un repositorio, explicando qué es el proyecto y cómo usarlo." },
-    { term: "Tag", cat: "Comando", cmd: "git tag", def: "Una etiqueta que marca un commit concreto como un punto importante — típicamente una versión publicada (v1.0, v2.1…)." },
-    { term: "Lockfile", cat: "Concepto", def: "Un archivo (package-lock.json, yarn.lock…) que fija la versión exacta de cada dependencia — importante también por seguridad." },
-  ]},
-];
-
-const glossarySlides = [];
-glossaryGroups.forEach((g, gi) => {
-  g.terms.forEach((t, ti) => {
-    glossarySlides.push({
-      chapter: CH.indexOf("Glosario"),
-      title: t.term,
-      html: `<div class="slide-inner"><div class="term-slide">
-        <div class="deck-cat">${g.name} · ${t.cat}</div>
-        <h2 class="deck-term">${t.term}</h2>
-        ${t.cmd ? `<span class="deck-cmd">${t.cmd}</span>` : ''}
-        <p class="deck-def">${t.def}</p>
-        ${t.ex ? `<div class="deck-ex">${t.ex}</div>` : ''}
-      </div></div>`
-    });
-  });
-});
-
-const slides = [coverSlide, ...contentSlides, ...glossarySlides];
-const total = slides.length;
-let idx = 0;
-
-/* ================= RENDER ================= */
-const slideEl = document.getElementById('slide');
-const counterCur = document.getElementById('counterCur');
-const counterTotal = document.getElementById('counterTotal');
-const progressFill = document.getElementById('progressFill');
-const progressTicks = document.getElementById('progressTicks');
-const chaptersEl = document.getElementById('chapters');
-const chapterLabel = document.getElementById('chapterLabel');
-const btnPrev = document.getElementById('btnPrev');
-const btnNext = document.getElementById('btnNext');
-const btnFullscreen = document.getElementById('btnFullscreen');
-const btnOverview = document.getElementById('btnOverview');
-const btnCloseOverview = document.getElementById('btnCloseOverview');
-const overview = document.getElementById('overview');
-const overviewGrid = document.getElementById('overviewGrid');
-const viewport = document.getElementById('viewport');
-
-counterTotal.textContent = String(total).padStart(2,'0');
-document.getElementById('overviewCount').textContent = `VISTA GENERAL — ${total} diapositivas`;
-
-// chapter pills
-CH.forEach((name, ci) => {
-  const first = slides.findIndex(s => s.chapter === ci);
-  const b = document.createElement('button');
-  b.className = 'chip';
-  b.innerHTML = `<span class="num">${String(ci).padStart(2,'0')}</span>${name}`;
-  b.addEventListener('click', () => { idx = first; render(); });
-  chaptersEl.appendChild(b);
-});
-const chipEls = chaptersEl.querySelectorAll('.chip');
-
-// progress chapter ticks
-CH.forEach((name, ci) => {
-  if (ci === 0) return;
-  const first = slides.findIndex(s => s.chapter === ci);
-  const pct = (first / total) * 100;
-  const tick = document.createElement('i');
-  tick.style.marginLeft = pct + '%';
-  progressTicks.appendChild(tick);
-});
-
-// overview cards
-slides.forEach((s, i) => {
-  const card = document.createElement('div');
-  card.className = 'ov-card';
-  card.dataset.i = i;
-  card.innerHTML = `<div class="ov-num">${String(i+1).padStart(2,'0')}</div><div class="ov-chap">${CH[s.chapter]}</div><div class="ov-title">${s.title}</div>`;
-  card.addEventListener('click', () => { idx = i; render(); closeOverview(); });
-  overviewGrid.appendChild(card);
-});
-const ovCards = overviewGrid.querySelectorAll('.ov-card');
-
-function render(){
-  const s = slides[idx];
-  slideEl.innerHTML = s.html;
-  slideEl.querySelector('.slide-body')?.scrollTo(0,0);
-  counterCur.textContent = String(idx+1).padStart(2,'0');
-  progressFill.style.width = `${((idx+1)/total)*100}%`;
-  chapterLabel.textContent = CH[s.chapter];
-  btnPrev.disabled = idx === 0;
-  btnNext.disabled = idx === total-1;
-  chipEls.forEach((c,i) => c.classList.toggle('active', i === s.chapter));
-  ovCards.forEach(c => c.classList.toggle('current', Number(c.dataset.i) === idx));
-}
-
-function go(delta){
-  const n = idx + delta;
-  if (n < 0 || n > total-1) return;
-  idx = n; render();
-}
-
-btnPrev.addEventListener('click', () => go(-1));
-btnNext.addEventListener('click', () => go(1));
-
-viewport.addEventListener('click', (e) => {
-  // never hijack clicks meant for real interactive elements (copy buttons, links, checkboxes, chips…)
-  if (e.target.closest('button, a, input, label, .checklist, .copy-btn')) return;
-  const rect = viewport.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  if (x < rect.width * 0.32) go(-1);
-  else if (x > rect.width * 0.68) go(1);
-});
-
-document.addEventListener('keydown', (e) => {
-  if (overview.classList.contains('open')){
-    if (e.key === 'Escape') closeOverview();
-    return;
-  }
-  if (e.key === 'ArrowRight' || e.key === ' ') go(1);
-  if (e.key === 'ArrowLeft') go(-1);
-  if (e.key === 'Home') { idx = 0; render(); }
-  if (e.key === 'End') { idx = total-1; render(); }
-  if (e.key.toLowerCase() === 'f') toggleFullscreen();
-});
-
-// swipe support
-let touchX = null;
-document.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, {passive:true});
-document.addEventListener('touchend', (e) => {
-  if (touchX === null) return;
-  const dx = e.changedTouches[0].clientX - touchX;
-  if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
-  touchX = null;
-}, {passive:true});
-
-function toggleFullscreen(){
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
-  else document.exitFullscreen?.();
-}
-btnFullscreen.addEventListener('click', toggleFullscreen);
-
-function openOverview(){ overview.classList.add('open'); }
-function closeOverview(){ overview.classList.remove('open'); }
-btnOverview.addEventListener('click', openOverview);
-btnCloseOverview.addEventListener('click', closeOverview);
-overview.addEventListener('click', (e) => { if (e.target === overview) closeOverview(); });
-
-render();
-</script>
 </body>
 </html>
