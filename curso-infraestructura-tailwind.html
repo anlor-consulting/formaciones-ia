@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Curso: Servidores, RAID y Cableado Estructurado</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+@theme {
+  --color-ink: #0a0e13;
+  --color-panel: #101720;
+  --color-cyan: #5dd6c5;
+  --color-cyan2: #8bf5e3;
+  --color-amber: #e8a655;
+  --color-red: #e8615a;
+  --color-violet: #b79ef0;
+  --color-txt: #dbe4e8;
+  --color-txt-dim: #8b98a0;
+  --color-txt-faint: #4a565c;
+  --color-edge: #1e2a32;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'IBM Plex Sans', sans-serif;
+}
+
+@keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:.3} }
+@keyframes revealUp { from{opacity:0; transform:translateY(22px)} to{opacity:1; transform:translateY(0)} }
+@keyframes flowRight{ 0%,100%{opacity:.4; transform:translateX(0)} 50%{opacity:1; transform:translateX(4px)} }
+@keyframes flowLeft{ 0%,100%{opacity:.4; transform:translateX(0)} 50%{opacity:1; transform:translateX(-4px)} }
+@keyframes popIn{ from{opacity:0; transform:scale(.5)} to{opacity:1; transform:scale(1)} }
+
+html,body{ height:100%; overflow:hidden; }
+body{
+  background-color:var(--color-ink);
+  background-image:
+    linear-gradient(rgba(93,214,197,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(93,214,197,0.07) 1px, transparent 1px),
+    radial-gradient(ellipse at 20% 20%, rgba(93,214,197,0.05), transparent 60%);
+  background-size:44px 44px, 44px 44px, 100% 100%;
+  background-attachment:fixed;
+}
+
+@layer components {
+  /* reveal-on-active animation system, driven by JS toggling .active on .slide */
+  .reveal{ opacity:0; transform:translateY(22px); }
+  .slide.active .reveal{ animation:revealUp .7s cubic-bezier(.2,.8,.2,1) forwards; }
+  .slide.active .reveal.r1{ animation-delay:.05s; }
+  .slide.active .reveal.r2{ animation-delay:.15s; }
+  .slide.active .reveal.r3{ animation-delay:.25s; }
+  .slide.active .reveal.r4{ animation-delay:.35s; }
+
+  .h-timeline::before{
+    content:''; position:absolute; top:9px; left:20px; right:20px; height:1px;
+    background:linear-gradient(90deg, var(--color-cyan), var(--color-edge));
+  }
+  .h-step::before{
+    content:''; position:absolute; top:2px; left:50%; transform:translateX(-50%);
+    width:15px; height:15px; border-radius:50%; background:var(--color-ink);
+    border:2px solid var(--color-cyan); z-index:2;
+  }
+}
+
+::-webkit-scrollbar{ width:0; }
+</style>
+</head>
+<body class="text-txt font-sans">
+
+<!-- progress bar -->
+<div id="progressBar" class="fixed top-0 left-0 h-[3px] bg-gradient-to-r from-cyan to-cyan2 shadow-[0_0_10px_theme(colors.cyan2)] z-[61] transition-[width] duration-500 ease-out" style="width:0%"></div>
+
+<!-- top chrome -->
+<div class="fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-7 py-4 pointer-events-none">
+  <div class="font-mono font-bold text-base text-cyan2 flex items-center gap-2.5 tracking-wide">
+    <span class="w-2 h-2 rounded-full bg-cyan2 shadow-[0_0_8px_theme(colors.cyan2)]" style="animation:pulseDot 2s infinite"></span>
+    CURSO_INFRAESTRUCTURA_TI.exe
+  </div>
+  <div class="font-mono text-[15px] text-txt-faint tracking-wide">
+    <b id="curNum" class="text-cyan2">01</b> / <span id="totalNum">00</span>
+  </div>
+</div>
+
+<!-- deck -->
+<div class="relative w-screen h-screen overflow-hidden">
+  <div id="track" class="flex h-full transition-transform duration-[650ms] ease-[cubic-bezier(.65,0,.35,1)]">
+
+    <!-- SLIDE 0: COVER -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20 relative">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Curso interactivo</div>
+      <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">
+        Servidores, <span class="text-cyan2">RAID</span><br>y Cableado Estructurado
+      </h1>
+      <p class="reveal r3 text-2xl leading-snug text-txt-dim max-w-3xl">Un recorrido en tres partes por los cimientos de cualquier infraestructura de TI: qué hace que un equipo sea un servidor, cómo se protegen los datos en disco, y cómo se organiza físicamente una red.</p>
+      <div class="reveal r4 mt-8 font-mono text-base text-txt-faint">→ Usa las flechas del teclado o el botón inferior para avanzar</div>
+    </section>
+
+    <!-- SLIDE 1: QUÉ ES UN SERVIDOR -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="grid md:grid-cols-2 gap-16 items-center flex-1">
+        <div>
+          <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 1 · Servidores</div>
+          <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">¿Qué es un<br><span class="text-cyan2">servidor</span>?</h1>
+          <p class="reveal r3 text-xl leading-relaxed max-w-2xl mb-4">Un servidor es cualquier ordenador o sistema que <b class="text-cyan2 font-semibold">ofrece recursos, datos o servicios</b> a otros equipos —clientes— a través de una red.</p>
+          <p class="reveal r4 text-xl leading-relaxed max-w-2xl mb-4">La regla es simple: si una máquina comparte algo que otra consume, actúa como servidor en ese momento. Un mismo dispositivo puede ser cliente y servidor a la vez.</p>
+        </div>
+        <div class="reveal r3 border border-edge rounded-2xl bg-panel p-10">
+          <div class="font-mono text-sm text-txt-faint tracking-widest uppercase mb-6">Relación cliente–servidor</div>
+          <div class="flex items-center justify-between gap-5">
+            <div class="flex-1 text-center border border-edge rounded-xl p-8 bg-white/[0.02]">
+              <span class="text-5xl block mb-3">🖥️</span>
+              <span class="font-mono text-lg text-cyan2 font-semibold">CLIENTE</span>
+              <div class="text-base text-txt-faint mt-1.5">solicita un recurso</div>
+            </div>
+            <div class="flex-none text-center font-mono text-base min-w-[130px]">
+              <span class="block text-cyan" style="animation:flowRight 2.2s infinite">solicitud →</span>
+              <span class="block text-amber mt-6" style="animation:flowLeft 2.2s infinite">← respuesta</span>
+            </div>
+            <div class="flex-1 text-center border border-edge rounded-xl p-8 bg-white/[0.02]">
+              <span class="text-5xl block mb-3">🗄️</span>
+              <span class="font-mono text-lg text-cyan2 font-semibold">SERVIDOR</span>
+              <div class="text-base text-txt-faint mt-1.5">escucha y responde</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: HISTORIA -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 1 · Servidores</div>
+      <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">De los <span class="text-cyan2">mainframes</span> a la nube</h1>
+      <p class="reveal r3 text-xl leading-relaxed max-w-2xl mb-8">El concepto de servidor evolucionó con la tecnología, sin dejar nunca de ser lo mismo en esencia: un sistema que responde a una solicitud.</p>
+      <div class="reveal r4 flex flex-wrap gap-6">
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1">
+          <span class="text-4xl block mb-3">🏛️</span><h4 class="font-mono text-lg text-cyan2 mb-2">Mainframe</h4><p class="text-base text-txt-dim leading-snug">Terminales "tontas" enviaban teclas; todo el cómputo ocurría en la máquina central.</p>
+        </div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1">
+          <span class="text-4xl block mb-3">🔗</span><h4 class="font-mono text-lg text-cyan2 mb-2">Modelo cliente-servidor</h4><p class="text-base text-txt-dim leading-snug">Equipos cliente con potencia propia delegan tareas específicas a un servidor.</p>
+        </div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1">
+          <span class="text-4xl block mb-3">💾</span><h4 class="font-mono text-lg text-cyan2 mb-2">Servidor virtual</h4><p class="text-base text-txt-dim leading-snug">El servidor pasa a ser software ejecutándose sobre hardware compartido.</p>
+        </div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1">
+          <span class="text-4xl block mb-3">☁️</span><h4 class="font-mono text-lg text-cyan2 mb-2">Nube</h4><p class="text-base text-txt-dim leading-snug">El hardware compartido vive en infraestructura de terceros, accesible por internet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: CÓMO FUNCIONA -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="grid md:grid-cols-2 gap-16 items-center flex-1">
+        <div>
+          <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 1 · Servidores</div>
+          <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">El modelo<br><span class="text-cyan2">solicitud–respuesta</span></h1>
+          <p class="reveal r3 text-xl leading-relaxed max-w-2xl mb-4">Un servidor debe estar siempre "escuchando" la red. Cuando llega una solicitud, no solo responde: antes verifica varias cosas.</p>
+        </div>
+        <div class="reveal r4 border border-edge rounded-2xl bg-panel p-10">
+          <div class="font-mono text-sm text-txt-faint tracking-widest uppercase mb-6">Anatomía de una solicitud</div>
+          <div class="flex flex-col gap-4">
+            <div class="border border-edge rounded-xl p-5 bg-white/[0.02] flex items-center gap-5">
+              <span class="text-4xl">1️⃣</span>
+              <div><span class="font-mono text-lg text-cyan2 font-semibold">Verificar identidad</span><div class="text-base text-txt-faint mt-1">¿quién eres tú?</div></div>
+            </div>
+            <div class="border border-edge rounded-xl p-5 bg-white/[0.02] flex items-center gap-5">
+              <span class="text-4xl">2️⃣</span>
+              <div><span class="font-mono text-lg text-cyan2 font-semibold">Comprobar permisos</span><div class="text-base text-txt-faint mt-1">¿tienes acceso a esto?</div></div>
+            </div>
+            <div class="border border-edge rounded-xl p-5 bg-white/[0.02] flex items-center gap-5">
+              <span class="text-4xl">3️⃣</span>
+              <div><span class="font-mono text-lg text-cyan2 font-semibold">Formatear y responder</span><div class="text-base text-txt-faint mt-1">entregar el resultado esperado</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: TIPOS DE SERVIDORES I -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 1 · Servidores</div>
+      <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">Tipos de servidores <span class="text-cyan2">(1/2)</span></h1>
+      <div class="reveal r3 grid grid-cols-2 lg:grid-cols-5 gap-5 mt-4">
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Almacenamiento</div><h3 class="font-mono text-lg text-cyan2 my-2">Archivos</h3><p class="text-base text-txt-dim leading-snug">Almacena y distribuye ficheros compartidos entre usuarios.</p></div>
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Periféricos</div><h3 class="font-mono text-lg text-cyan2 my-2">Impresión</h3><p class="text-base text-txt-dim leading-snug">Gestiona trabajos de impresión de muchos clientes a la vez.</p></div>
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Cómputo remoto</div><h3 class="font-mono text-lg text-cyan2 my-2">Aplicaciones</h3><p class="text-base text-txt-dim leading-snug">Ejecuta programas de forma remota en lugar del equipo cliente.</p></div>
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Resolución de nombres</div><h3 class="font-mono text-lg text-cyan2 my-2">DNS</h3><p class="text-base text-txt-dim leading-snug">Traduce nombres de dominio en direcciones IP.</p></div>
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Mensajería</div><h3 class="font-mono text-lg text-cyan2 my-2">Correo</h3><p class="text-base text-txt-dim leading-snug">Recibe y almacena email hasta que el cliente lo solicita.</p></div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: TIPOS DE SERVIDORES II -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 1 · Servidores</div>
+      <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">Tipos de servidores <span class="text-cyan2">(2/2)</span></h1>
+      <div class="reveal r3 grid grid-cols-2 lg:grid-cols-5 gap-5 mt-4">
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Internet</div><h3 class="font-mono text-lg text-cyan2 my-2">Web</h3><p class="text-base text-txt-dim leading-snug">Aloja páginas y datos solicitados por navegadores.</p></div>
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Datos estructurados</div><h3 class="font-mono text-lg text-cyan2 my-2">Base de datos</h3><p class="text-base text-txt-dim leading-snug">Ejecuta motores de BD y atiende múltiples consultas.</p></div>
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Virtualización</div><h3 class="font-mono text-lg text-cyan2 my-2">Virtual</h3><p class="text-base text-txt-dim leading-snug">Existe como definición dentro de un hipervisor.</p></div>
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Seguridad</div><h3 class="font-mono text-lg text-cyan2 my-2">Proxy</h3><p class="text-base text-txt-dim leading-snug">Actúa de intermediario entre cliente y servidor real.</p></div>
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Gestión de red</div><h3 class="font-mono text-lg text-cyan2 my-2">Supervisión</h3><p class="text-base text-txt-dim leading-snug">Monitorea tráfico y estado de otros servidores.</p></div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: ESTRUCTURAS FÍSICAS -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 1 · Servidores</div>
+      <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">Evolución del <span class="text-cyan2">hardware</span></h1>
+      <div class="reveal r3 h-timeline flex items-start relative mt-10">
+        <div class="h-step flex-1 text-center relative pt-7"><div class="font-mono text-sm text-amber tracking-wide">ERA 1</div><h4 class="font-mono text-lg text-txt my-2.5">Mainframe</h4><p class="text-sm text-txt-dim leading-snug px-2">Gestiona casi todo; el usuario solo interactúa vía pantalla y teclado.</p></div>
+        <div class="h-step flex-1 text-center relative pt-7"><div class="font-mono text-sm text-amber tracking-wide">ERA 2</div><h4 class="font-mono text-lg text-txt my-2.5">Hardware dedicado</h4><p class="text-sm text-txt-dim leading-snug px-2">Equipo autónomo: placa, CPU, disco y fuente propios.</p></div>
+        <div class="h-step flex-1 text-center relative pt-7"><div class="font-mono text-sm text-amber tracking-wide">ERA 3</div><h4 class="font-mono text-lg text-txt my-2.5">Servidor Blade</h4><p class="text-sm text-txt-dim leading-snug px-2">Componentes miniaturizados en una "cuchilla" delgada.</p></div>
+        <div class="h-step flex-1 text-center relative pt-7"><div class="font-mono text-sm text-amber tracking-wide">ERA 4</div><h4 class="font-mono text-lg text-txt my-2.5">Clúster</h4><p class="text-sm text-txt-dim leading-snug px-2">Piezas de hardware combinadas, intercambiables en caliente.</p></div>
+        <div class="h-step flex-1 text-center relative pt-7"><div class="font-mono text-sm text-amber tracking-wide">ERA 5</div><h4 class="font-mono text-lg text-txt my-2.5">Virtual</h4><p class="text-sm text-txt-dim leading-snug px-2">Un hipervisor reparte el hardware entre cientos de servidores.</p></div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: SISTEMAS OPERATIVOS -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 1 · Servidores</div>
+      <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">Sistemas operativos <span class="text-cyan2">de servidor</span></h1>
+      <div class="reveal r3 flex flex-wrap gap-6 mt-4">
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">🪟</span><h4 class="font-mono text-lg text-cyan2 mb-2">Windows Server</h4><p class="text-base text-txt-dim leading-snug">Soporte nativo para apps, BD e hipervisor propio.</p></div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">🐧</span><h4 class="font-mono text-lg text-cyan2 mb-2">Linux / Unix</h4><p class="text-base text-txt-dim leading-snug">Código abierto; base habitual de servidores web con Apache.</p></div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">🗃️</span><h4 class="font-mono text-lg text-cyan2 mb-2">NetWare</h4><p class="text-base text-txt-dim leading-snug">Sistema histórico, hoy migrado a un núcleo Linux (OES).</p></div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">☁️</span><h4 class="font-mono text-lg text-cyan2 mb-2">Servidores en la nube</h4><p class="text-base text-txt-dim leading-snug">AWS, Azure, GCP: virtuales, escalables casi al instante.</p></div>
+      </div>
+      <div class="reveal r4 mt-8 border border-edge border-l-4 border-l-cyan bg-cyan/5 rounded-r-xl px-7 py-5 text-lg text-txt-dim max-w-3xl"><b class="text-cyan2">Para recordar:</b> sin importar el hardware o el sistema operativo, un servidor sigue siendo simplemente "un sistema que responde a la solicitud de un cliente".</div>
+    </section>
+
+    <!-- SLIDE 8: DIVIDER RAID -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20 relative">
+      <div class="flex flex-col items-start justify-center h-full">
+        <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 2</div>
+        <h1 class="reveal r2 font-mono font-bold text-[clamp(48px,7.5vw,90px)] leading-[1.08] tracking-tight mb-7">Almacenamiento<br><span class="text-cyan2">redundante: RAID</span></h1>
+        <p class="reveal r3 text-2xl leading-snug text-txt-dim max-w-3xl">Cómo se protegen los datos cuando un disco falla.</p>
+      </div>
+      <div class="hidden md:block absolute top-1/2 right-20 -translate-y-1/2 font-mono font-bold text-[120px] text-edge leading-none">02</div>
+    </section>
+
+    <!-- SLIDE 9: QUÉ ES RAID -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="grid md:grid-cols-2 gap-16 items-center flex-1">
+        <div>
+          <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 2 · RAID</div>
+          <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">¿Qué es <span class="text-cyan2">RAID</span>?</h1>
+          <p class="reveal r3 text-xl leading-relaxed max-w-2xl mb-4"><b class="text-cyan2 font-semibold">Redundant Array of Independent Disks:</b> un conjunto redundante de discos independientes que se comportan como un solo medio de almacenamiento.</p>
+          <p class="reveal r4 text-xl leading-relaxed max-w-2xl mb-4">Persigue dos metas: ganar <b class="text-cyan2 font-semibold">espacio</b> y proteger la información ante un <b class="text-cyan2 font-semibold">fallo mecánico</b> — clave en cualquier servidor.</p>
+        </div>
+        <div class="reveal r4 border border-edge rounded-2xl bg-panel p-10">
+          <div class="font-mono text-sm text-txt-faint tracking-widest uppercase mb-6">Disco en espejo (mirroring)</div>
+          <div class="flex gap-4 flex-wrap">
+            <div class="w-20 h-24 rounded-lg border border-edge bg-gradient-to-b from-white/[0.03] to-transparent flex flex-col items-center justify-center font-mono text-xs text-txt-faint gap-1.5">
+              <div class="flex flex-col gap-1"><div class="w-12 h-2 rounded-sm bg-cyan"></div><div class="w-12 h-2 rounded-sm bg-cyan"></div><div class="w-12 h-2 rounded-sm bg-cyan"></div><div class="w-12 h-2 rounded-sm bg-cyan"></div></div>
+              Disco A
+            </div>
+            <div class="w-20 h-24 rounded-lg border border-edge bg-gradient-to-b from-white/[0.03] to-transparent flex flex-col items-center justify-center font-mono text-xs text-txt-faint gap-1.5">
+              <div class="flex flex-col gap-1"><div class="w-12 h-2 rounded-sm bg-cyan"></div><div class="w-12 h-2 rounded-sm bg-cyan"></div><div class="w-12 h-2 rounded-sm bg-cyan"></div><div class="w-12 h-2 rounded-sm bg-cyan"></div></div>
+              Disco B (copia)
+            </div>
+          </div>
+          <p class="text-base text-txt-dim mt-5 leading-snug">Si el disco principal falla, la copia toma el relevo sin perder datos — práctica habitual en redes que deben mantenerse activas 24/7.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: TIPOS DE RAID I -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 2 · RAID</div>
+      <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">Niveles de RAID <span class="text-cyan2">(1/2)</span></h1>
+      <div class="reveal r3 grid md:grid-cols-3 gap-5 mt-4">
+        <div class="border border-edge rounded-xl p-7 bg-panel"><span class="font-mono text-sm text-amber tracking-wide uppercase">Sin redundancia</span><div class="font-mono font-bold text-2xl text-cyan2 my-3">RAID 0</div><p class="text-base text-txt-dim leading-snug mb-3">Reparte los datos entre discos. Sin copia — más rápido, más frágil.</p><div class="flex gap-4 font-mono text-sm text-txt-faint border-t border-edge pt-3">MÍN. DISCOS<span class="text-cyan2 text-lg block mt-1">2</span></div></div>
+        <div class="border border-edge rounded-xl p-7 bg-panel"><span class="font-mono text-sm text-amber tracking-wide uppercase">Mirroring</span><div class="font-mono font-bold text-2xl text-cyan2 my-3">RAID 1</div><p class="text-base text-txt-dim leading-snug mb-3">Duplica los datos entre dos discos. El más seguro y sencillo.</p><div class="flex gap-4 font-mono text-sm text-txt-faint border-t border-edge pt-3">MÍN. DISCOS<span class="text-cyan2 text-lg block mt-1">2</span></div></div>
+        <div class="border border-edge rounded-xl p-7 bg-panel"><span class="font-mono text-sm text-amber tracking-wide uppercase">Paridad distribuida</span><div class="font-mono font-bold text-2xl text-cyan2 my-3">RAID 5</div><p class="text-base text-txt-dim leading-snug mb-3">Distribuye datos y paridad. Muy usado en servidores.</p><div class="flex gap-4 font-mono text-sm text-txt-faint border-t border-edge pt-3">MÍN. DISCOS<span class="text-cyan2 text-lg block mt-1">3</span></div></div>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: TIPOS DE RAID II -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 2 · RAID</div>
+      <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">Niveles de RAID <span class="text-cyan2">(2/2)</span></h1>
+      <div class="reveal r3 grid md:grid-cols-3 gap-5 mt-4">
+        <div class="border border-edge rounded-xl p-7 bg-panel"><span class="font-mono text-sm text-amber tracking-wide uppercase">Doble paridad</span><div class="font-mono font-bold text-2xl text-cyan2 my-3">RAID 6</div><p class="text-base text-txt-dim leading-snug mb-3">Como RAID 5, pero soporta la falla simultánea de dos discos.</p><div class="flex gap-4 font-mono text-sm text-txt-faint border-t border-edge pt-3">MÍN. DISCOS<span class="text-cyan2 text-lg block mt-1">4</span></div></div>
+        <div class="border border-edge rounded-xl p-7 bg-panel"><span class="font-mono text-sm text-amber tracking-wide uppercase">Combinado</span><div class="font-mono font-bold text-2xl text-cyan2 my-3">RAID 0+1</div><p class="text-base text-txt-dim leading-snug mb-3">Divide los datos (RAID 0) y además los respalda con espejo (RAID 1).</p><div class="flex gap-4 font-mono text-sm text-txt-faint border-t border-edge pt-3">MÍN. DISCOS<span class="text-cyan2 text-lg block mt-1">4</span></div></div>
+        <div class="border border-edge rounded-xl p-7 bg-panel"><span class="font-mono text-sm text-amber tracking-wide uppercase">A medida</span><div class="font-mono font-bold text-2xl text-cyan2 my-3">Otras combinaciones</div><p class="text-base text-txt-dim leading-snug mb-3">Los niveles básicos se mezclan según necesidades específicas.</p><div class="flex gap-4 font-mono text-sm text-txt-faint border-t border-edge pt-3">MÍN. DISCOS<span class="text-cyan2 text-lg block mt-1">Variable</span></div></div>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: DIVIDER CABLEADO -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20 relative">
+      <div class="flex flex-col items-start justify-center h-full">
+        <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 3</div>
+        <h1 class="reveal r2 font-mono font-bold text-[clamp(48px,7.5vw,90px)] leading-[1.08] tracking-tight mb-7">Cableado<br><span class="text-cyan2">estructurado</span></h1>
+        <p class="reveal r3 text-2xl leading-snug text-txt-dim max-w-3xl">La columna vertebral física de cualquier red.</p>
+      </div>
+      <div class="hidden md:block absolute top-1/2 right-20 -translate-y-1/2 font-mono font-bold text-[120px] text-edge leading-none">03</div>
+    </section>
+
+    <!-- SLIDE 13: QUÉ ES CABLEADO + BENEFICIOS -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 3 · Cableado</div>
+      <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">¿Por qué <span class="text-cyan2">importa</span>?</h1>
+      <p class="reveal r3 text-xl leading-relaxed max-w-2xl mb-6">Agrupa todos los cables y componentes de una red en una estructura ordenada, siguiendo la norma <b class="text-cyan2 font-semibold">TIA/EIA-568</b>.</p>
+      <div class="reveal r4 flex flex-wrap gap-6">
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">🗂️</span><h4 class="font-mono text-lg text-cyan2 mb-2">Organización</h4><p class="text-base text-txt-dim leading-snug">Menos tiempo de mantenimiento y diagnóstico.</p></div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">💰</span><h4 class="font-mono text-lg text-cyan2 mb-2">Costos</h4><p class="text-base text-txt-dim leading-snug">Infraestructura escalable sin reconfiguración total.</p></div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">📈</span><h4 class="font-mono text-lg text-cyan2 mb-2">Escalabilidad</h4><p class="text-base text-txt-dim leading-snug">Crece con la empresa sin interrumpir el servicio.</p></div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">⚡</span><h4 class="font-mono text-lg text-cyan2 mb-2">Rendimiento</h4><p class="text-base text-txt-dim leading-snug">Transmisión rápida con mínimas interferencias.</p></div>
+      </div>
+    </section>
+
+    <!-- SLIDE 14: CATEGORÍAS DE CABLE -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 3 · Cableado</div>
+      <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">Categorías de <span class="text-cyan2">cable</span></h1>
+      <div class="reveal r3 border border-edge rounded-2xl bg-panel p-10 max-w-3xl mt-2">
+        <div class="font-mono text-sm text-txt-faint tracking-widest uppercase mb-6">Velocidad máxima aproximada</div>
+        <div class="flex items-center gap-5 mb-6"><span class="font-mono text-lg text-cyan2 w-20 flex-none">Cat 5e</span><div class="flex-1 h-4 bg-edge rounded-full overflow-hidden"><div class="bar-fill h-full bg-gradient-to-r from-cyan to-cyan2 rounded-full transition-[width] duration-1000 ease-out" style="width:0%" data-w="20"></div></div><span class="font-mono text-base text-txt-dim w-20 flex-none text-right">1 Gbps</span></div>
+        <div class="flex items-center gap-5 mb-6"><span class="font-mono text-lg text-cyan2 w-20 flex-none">Cat 6</span><div class="flex-1 h-4 bg-edge rounded-full overflow-hidden"><div class="bar-fill h-full bg-gradient-to-r from-cyan to-cyan2 rounded-full transition-[width] duration-1000 ease-out" style="width:0%" data-w="55"></div></div><span class="font-mono text-base text-txt-dim w-20 flex-none text-right">10 Gbps</span></div>
+        <div class="flex items-center gap-5 mb-6"><span class="font-mono text-lg text-cyan2 w-20 flex-none">Cat 6a</span><div class="flex-1 h-4 bg-edge rounded-full overflow-hidden"><div class="bar-fill h-full bg-gradient-to-r from-cyan to-cyan2 rounded-full transition-[width] duration-1000 ease-out" style="width:0%" data-w="70"></div></div><span class="font-mono text-base text-txt-dim w-20 flex-none text-right">10 Gbps+</span></div>
+        <div class="flex items-center gap-5"><span class="font-mono text-lg text-cyan2 w-20 flex-none">Cat 7</span><div class="flex-1 h-4 bg-edge rounded-full overflow-hidden"><div class="bar-fill h-full bg-gradient-to-r from-cyan to-cyan2 rounded-full transition-[width] duration-1000 ease-out" style="width:0%" data-w="100"></div></div><span class="font-mono text-base text-txt-dim w-20 flex-none text-right">Alta frec.</span></div>
+      </div>
+      <p class="reveal r4 text-base text-txt-faint mt-4">Cat 6a iguala la velocidad de Cat 6 con menor interferencia a mayor distancia.</p>
+    </section>
+
+    <!-- SLIDE 15: COMPONENTES -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 3 · Cableado</div>
+      <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">Componentes <span class="text-cyan2">clave</span></h1>
+      <div class="reveal r3 grid grid-cols-2 lg:grid-cols-5 gap-5 mt-4">
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Cobre</div><h3 class="font-mono text-lg text-cyan2 my-2">UTP / STP / FTP</h3><p class="text-base text-txt-dim leading-snug">Par trenzado, con o sin blindaje contra interferencias.</p></div>
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Fibra</div><h3 class="font-mono text-lg text-cyan2 my-2">Multimodo / Monomodo</h3><p class="text-base text-txt-dim leading-snug">Distancias cortas vs. largas con mínima pérdida de señal.</p></div>
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Conectores</div><h3 class="font-mono text-lg text-cyan2 my-2">RJ45 / LC / SC / ST</h3><p class="text-base text-txt-dim leading-snug">Terminaciones para cobre y fibra respectivamente.</p></div>
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Gestión</div><h3 class="font-mono text-lg text-cyan2 my-2">Paneles de parcheo</h3><p class="text-base text-txt-dim leading-snug">Punto central de terminación para cambios rápidos.</p></div>
+        <div class="border border-edge rounded-xl p-6 bg-panel transition-all duration-300 hover:-translate-y-1 hover:border-cyan"><div class="font-mono text-xs text-txt-faint tracking-wide uppercase">Seguridad</div><h3 class="font-mono text-lg text-cyan2 my-2">Puesta a tierra</h3><p class="text-base text-txt-dim leading-snug">Protección ante descargas y subidas de tensión.</p></div>
+      </div>
+    </section>
+
+    <!-- SLIDE 16: NORMATIVAS Y RACKS -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 3 · Cableado</div>
+      <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">Normativas y <span class="text-cyan2">racks</span></h1>
+      <p class="reveal r3 text-xl leading-relaxed max-w-2xl mb-6"><b class="text-cyan2 font-semibold">TIA/EIA-568</b> e <b class="text-cyan2 font-semibold">ISO/IEC</b> definen cómo instalar, configurar y mantener la infraestructura.</p>
+      <div class="reveal r4 flex flex-wrap gap-6">
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">🧱</span><h4 class="font-mono text-lg text-cyan2 mb-2">Rack mural</h4><p class="text-base text-txt-dim leading-snug">Espacios reducidos, cargas ligeras.</p></div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">🏢</span><h4 class="font-mono text-lg text-cyan2 mb-2">Rack de piso</h4><p class="text-base text-txt-dim leading-snug">Entornos grandes y complejos.</p></div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">🌬️</span><h4 class="font-mono text-lg text-cyan2 mb-2">Rack abierto</h4><p class="text-base text-txt-dim leading-snug">Mejor ventilación, menos protección.</p></div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">🔒</span><h4 class="font-mono text-lg text-cyan2 mb-2">Rack cerrado</h4><p class="text-base text-txt-dim leading-snug">Más seguridad, requiere refrigeración.</p></div>
+      </div>
+    </section>
+
+    <!-- SLIDE 17: APLICACIONES -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Parte 3 · Cableado</div>
+      <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-7">¿Dónde se <span class="text-cyan2">aplica</span>?</h1>
+      <div class="reveal r3 flex flex-wrap gap-6 mt-4">
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">🏢</span><h4 class="font-mono text-lg text-cyan2 mb-2">Oficinas</h4><p class="text-base text-txt-dim leading-snug">Internet, correo, videoconferencia sin interrupciones al reorganizar espacios.</p></div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">🖧</span><h4 class="font-mono text-lg text-cyan2 mb-2">Centros de datos</h4><p class="text-base text-txt-dim leading-snug">Añade servidores y gestiona tráfico con más seguridad y eficiencia energética.</p></div>
+        <div class="flex-1 min-w-[210px] border border-edge rounded-xl p-8 bg-panel text-center transition-transform duration-300 hover:-translate-y-1"><span class="text-4xl block mb-3">🏭</span><h4 class="font-mono text-lg text-cyan2 mb-2">Industria</h4><p class="text-base text-txt-dim leading-snug">Automatización, control de procesos y robótica en entornos exigentes.</p></div>
+      </div>
+      <div class="reveal r4 mt-8 border border-edge border-l-4 border-l-violet bg-violet/5 rounded-r-xl px-7 py-5 text-lg text-txt-dim max-w-3xl"><b class="text-violet">Buenas prácticas:</b> etiquetar cada cable, separar líneas de datos y energía, usar bandejas y guías para evitar enredos.</div>
+    </section>
+
+    <!-- SLIDE 18: QUIZ 1 -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Evaluación · Pregunta 1 de 3</div>
+      <div class="reveal r2 max-w-3xl">
+        <div class="font-mono text-3xl mb-8 leading-snug">¿Qué convierte a un ordenador en "servidor"?</div>
+        <div class="qopts flex flex-col" data-correct="1">
+          <button class="qopt block w-full text-left px-7 py-5 mb-3 border border-edge rounded-xl bg-white/[0.02] text-txt-dim text-xl transition-all duration-150 hover:border-cyan hover:translate-x-1">Tener un procesador muy potente</button>
+          <button class="qopt block w-full text-left px-7 py-5 mb-3 border border-edge rounded-xl bg-white/[0.02] text-txt-dim text-xl transition-all duration-150 hover:border-cyan hover:translate-x-1">Compartir recursos con máquinas cliente en red</button>
+          <button class="qopt block w-full text-left px-7 py-5 mb-3 border border-edge rounded-xl bg-white/[0.02] text-txt-dim text-xl transition-all duration-150 hover:border-cyan hover:translate-x-1">Estar en un centro de datos</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 19: QUIZ 2 -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Evaluación · Pregunta 2 de 3</div>
+      <div class="reveal r2 max-w-3xl">
+        <div class="font-mono text-3xl mb-8 leading-snug">¿Qué nivel de RAID usa "mirroring" puro (duplicado total entre dos discos)?</div>
+        <div class="qopts flex flex-col" data-correct="1">
+          <button class="qopt block w-full text-left px-7 py-5 mb-3 border border-edge rounded-xl bg-white/[0.02] text-txt-dim text-xl transition-all duration-150 hover:border-cyan hover:translate-x-1">RAID 0</button>
+          <button class="qopt block w-full text-left px-7 py-5 mb-3 border border-edge rounded-xl bg-white/[0.02] text-txt-dim text-xl transition-all duration-150 hover:border-cyan hover:translate-x-1">RAID 1</button>
+          <button class="qopt block w-full text-left px-7 py-5 mb-3 border border-edge rounded-xl bg-white/[0.02] text-txt-dim text-xl transition-all duration-150 hover:border-cyan hover:translate-x-1">RAID 5</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 20: QUIZ 3 -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="reveal r1 font-mono text-base tracking-[.3em] text-amber uppercase mb-4">// Evaluación · Pregunta 3 de 3</div>
+      <div class="reveal r2 max-w-3xl">
+        <div class="font-mono text-3xl mb-8 leading-snug">¿Qué norma rige la instalación del cableado estructurado?</div>
+        <div class="qopts flex flex-col" data-correct="2">
+          <button class="qopt block w-full text-left px-7 py-5 mb-3 border border-edge rounded-xl bg-white/[0.02] text-txt-dim text-xl transition-all duration-150 hover:border-cyan hover:translate-x-1">IEEE 802.11</button>
+          <button class="qopt block w-full text-left px-7 py-5 mb-3 border border-edge rounded-xl bg-white/[0.02] text-txt-dim text-xl transition-all duration-150 hover:border-cyan hover:translate-x-1">RFC 791</button>
+          <button class="qopt block w-full text-left px-7 py-5 mb-3 border border-edge rounded-xl bg-white/[0.02] text-txt-dim text-xl transition-all duration-150 hover:border-cyan hover:translate-x-1">TIA/EIA-568</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 21: CIERRE -->
+    <section class="slide flex-none w-screen h-screen flex flex-col justify-center px-28 py-20">
+      <div class="flex flex-col items-center justify-center h-full text-center">
+        <div class="reveal r1 text-7xl mb-3" style="animation:popIn .6s cubic-bezier(.2,1.4,.4,1) forwards; opacity:0; transform:scale(.5)">✓</div>
+        <h1 class="reveal r2 font-mono font-bold text-[clamp(42px,5.6vw,68px)] leading-[1.08] tracking-tight mb-6">Curso <span class="text-cyan2">completado</span></h1>
+        <p class="reveal r3 text-2xl leading-snug text-txt-dim max-w-3xl">Tres piezas que sostienen cualquier infraestructura de TI, de la lógica del servicio al cable físico.</p>
+        <div class="reveal r4 grid md:grid-cols-3 gap-6 max-w-5xl mt-10 text-left">
+          <div class="border border-edge rounded-xl p-6 bg-panel"><div class="font-mono text-sm text-amber">PARTE 1</div><h4 class="font-mono text-lg text-cyan2 my-2">Servidores</h4><p class="text-base text-txt-dim leading-snug">Un rol de red: escuchar, procesar y responder solicitudes.</p></div>
+          <div class="border border-edge rounded-xl p-6 bg-panel"><div class="font-mono text-sm text-amber">PARTE 2</div><h4 class="font-mono text-lg text-cyan2 my-2">RAID</h4><p class="text-base text-txt-dim leading-snug">Redundancia y velocidad combinando discos independientes.</p></div>
+          <div class="border border-edge rounded-xl p-6 bg-panel"><div class="font-mono text-sm text-amber">PARTE 3</div><h4 class="font-mono text-lg text-cyan2 my-2">Cableado</h4><p class="text-base text-txt-dim leading-snug">La estructura física ordenada que sostiene toda la red.</p></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- bottom chrome -->
+<div class="fixed bottom-0 left-0 right-0 z-[60] flex items-center justify-center gap-5 p-5">
+  <button id="prevBtn" class="pointer-events-auto font-mono text-base text-txt-dim bg-panel/80 border border-edge rounded-lg px-5 py-3 backdrop-blur-sm transition-all hover:border-cyan hover:text-cyan2 hover:-translate-y-0.5 disabled:opacity-25 disabled:cursor-default">← Anterior</button>
+  <div id="dots" class="pointer-events-auto flex gap-2"></div>
+  <button id="nextBtn" class="pointer-events-auto font-mono text-base text-txt-dim bg-panel/80 border border-edge rounded-lg px-5 py-3 backdrop-blur-sm transition-all hover:border-cyan hover:text-cyan2 hover:-translate-y-0.5 disabled:opacity-25 disabled:cursor-default">Siguiente →</button>
+</div>
+<div class="hidden md:block fixed bottom-7 right-7 font-mono text-sm text-txt-faint z-[60]">← → para navegar</div>
+
+<script>
+const track = document.getElementById('track');
+const slides = Array.from(track.children);
+const total = slides.length;
+let current = 0;
+
+document.getElementById('totalNum').textContent = String(total).padStart(2,'0');
+
+const dotsWrap = document.getElementById('dots');
+slides.forEach((_,i)=>{
+  const d = document.createElement('div');
+  d.className = 'w-2 h-2 rounded-full bg-edge cursor-pointer transition-all duration-200 hover:bg-cyan' + (i===0 ? ' bg-cyan2! w-6! rounded-sm! shadow-[0_0_8px_theme(colors.cyan2)]' : '');
+  d.addEventListener('click', ()=> goTo(i));
+  dotsWrap.appendChild(d);
+});
+const dotEls = Array.from(dotsWrap.children);
+
+function setDot(el, active){
+  el.className = 'cursor-pointer transition-all duration-200 rounded-full ' +
+    (active ? 'bg-cyan2 w-6 h-2 shadow-[0_0_8px_theme(colors.cyan2)]' : 'bg-edge hover:bg-cyan w-2 h-2');
+}
+dotEls.forEach((d,i)=> setDot(d, i===0));
+
+function retriggerAnimations(slide){
+  slide.classList.remove('active');
+  void slide.offsetWidth;
+  slide.classList.add('active');
+}
+
+function renderSlide(){
+  track.style.transform = `translateX(-${current*100}vw)`;
+  slides.forEach((s,i)=> s.classList.toggle('active', i===current));
+  retriggerAnimations(slides[current]);
+  dotEls.forEach((d,i)=> setDot(d, i===current));
+  document.getElementById('curNum').textContent = String(current+1).padStart(2,'0');
+  document.getElementById('progressBar').style.width = (((current+1)/total)*100)+'%';
+  document.getElementById('prevBtn').disabled = current===0;
+  document.getElementById('nextBtn').disabled = current===total-1;
+
+  slides[current].querySelectorAll('.bar-fill').forEach(bar=>{
+    bar.style.width = '0%';
+    requestAnimationFrame(()=>{ setTimeout(()=>{ bar.style.width = bar.dataset.w + '%'; }, 200); });
+  });
+}
+
+function goTo(i){
+  if(i<0 || i>=total) return;
+  current = i;
+  renderSlide();
+}
+
+document.getElementById('prevBtn').addEventListener('click', ()=> goTo(current-1));
+document.getElementById('nextBtn').addEventListener('click', ()=> goTo(current+1));
+
+window.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight' || e.key===' '){ goTo(current+1); }
+  if(e.key==='ArrowLeft'){ goTo(current-1); }
+});
+
+let touchStartX = null;
+track.addEventListener('touchstart', e=> touchStartX = e.touches[0].clientX);
+track.addEventListener('touchend', e=>{
+  if(touchStartX===null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if(dx > 60) goTo(current-1);
+  if(dx < -60) goTo(current+1);
+  touchStartX = null;
+});
+
+document.querySelectorAll('.qopts').forEach(group=>{
+  const correctIdx = parseInt(group.dataset.correct);
+  const opts = Array.from(group.children);
+  opts.forEach((btn, idx)=>{
+    btn.addEventListener('click', ()=>{
+      if(group.dataset.locked) return;
+      group.dataset.locked = '1';
+      opts.forEach((b,bi)=>{
+        b.disabled = true;
+        if(bi===correctIdx){ b.classList.add('border-cyan','bg-cyan/10','text-cyan2'); }
+        else if(bi===idx){ b.classList.add('border-red','bg-red/10','text-red'); }
+      });
+    });
+  });
+});
+
+renderSlide();
+</script>
+</body>
+</html>
